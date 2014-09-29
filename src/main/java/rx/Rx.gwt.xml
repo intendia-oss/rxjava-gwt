@@ -1,0 +1,8 @@
+<module>
+    <inherits name="com.google.gwt.core.Core"/>
+    <inherits name="java.util.Util"/>
+    <source path="">
+        <exclude name="super/"/>
+    </source>
+    <super-source path="super"/>
+</module>
