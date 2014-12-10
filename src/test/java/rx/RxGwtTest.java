@@ -3,6 +3,9 @@ package rx;
 import static java.lang.System.out;
 
 import com.google.gwt.junit.client.GWTTestCase;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
@@ -35,5 +38,30 @@ public class RxGwtTest extends GWTTestCase {
                     }
                 })
                 .subscribe();
+    }
+
+    public void testScheduler() {
+        delayTestFinish(5000);
+        final AtomicLong count = new AtomicLong();
+        Observable.interval(1, TimeUnit.SECONDS)
+                .take(4)
+                .doOnNext(new Action1<Long>() {
+                    @Override
+                    public void call(Long next) {
+                        count.set(next);
+                        System.out.println("onNext: " + next);
+                    }
+                })
+                .doOnCompleted(new Action0() {
+                    @Override
+                    public void call() {
+                        System.out.println("onComplete");
+                        assertEquals(3, count.get());
+                        finishTest();
+                    }
+                })
+                .subscribe();
+        assertEquals(0, count.get());
+        System.out.println("subscribed");
     }
 }
