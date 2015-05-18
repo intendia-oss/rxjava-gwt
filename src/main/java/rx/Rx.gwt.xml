@@ -5,6 +5,23 @@
     <inherits name="java.util.Util"/>
     <source path="">
         <exclude name="super/"/>
+        <exclude name="**/Test*.java"/>
+        <exclude name="internal/operators/Blocking*.java"/>
+        <exclude name="internal/operators/OperatorOnBackpressureBlock.java"/>
+        <exclude name="internal/util/PlatformDependent.java"/>
+        <exclude name="internal/util/RxThreadFactory.java"/>
+        <exclude name="internal/util/unsafe/"/>
+        <exclude name="internal/schedulers/EventLoopsScheduler.java"/>
+        <exclude name="internal/schedulers/NewThreadWorker.java"/>
+        <exclude name="observables/BlockingObservable.java"/>
+        <exclude name="schedulers/CachedThreadScheduler.java"/>
+        <exclude name="schedulers/ExecutorScheduler.java"/>
+        <exclude name="schedulers/GenericScheduledExecutorService.java"/>
+        <exclude name="schedulers/ImmediateScheduler.java"/>
+        <exclude name="schedulers/NewThreadScheduler.java"/>
+        <exclude name="schedulers/Schedulers.java"/>
+        <exclude name="schedulers/SleepingAction.java"/>
+        <exclude name="schedulers/TrampolineScheduler.java"/>
     </source>
     <super-source path="super"/>
 </module>

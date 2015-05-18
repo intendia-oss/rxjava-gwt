@@ -1,0 +1,92 @@
+# RxJava GWT [![Build Status](https://travis-ci.org/ibaca/rxjava-gwt.svg)](https://travis-ci.org/ibaca/rxjava-gwt)
+
+Currently this project is just a patch over [RxJava](https://github.com/ReactiveX/RxJava) to made it 
+works in GWT (client side).
+
+### Goals
+
+ * Use same RxJava API in the client side
+ * Improve RxJava GWT performance (emulate classes)
+ * GWT tools (observe from EventBus, HasValueChangeHandler, ...)
+ 
+## Why I start this project?
+
+My primary goal to start this project was to have a shared (between client and server) type safe Promise 
+implementation. This promises most of the time are server request calls, and most of this request returns 
+a collection of items (zero or one are collections too :grimacing:). So I end up with the conclusion that Observables 
+was an elegant solution to my problem. With Observables you can define your shared API and provides a Promise like API 
+to handle and compose responses (composition was the primary motivation to use promises, if you don't need composition 
+callbacks are probably enough). So you can define service like this:  
+```
+public interface FilesService extends DirectRestService {
+    @GET @Path("/files") public Observable<FileVO> files(@QueryParam("matches") String matches);
+}
+```
+And can be used like:
+```
+// simple: request one file and show
+filesService.files("/one.file").subscribe(resultBox::showFile);
+
+// advanced: request 10 files each time search box changes, auto canceling previous request and showing the results
+Observable<String> searchText = GwtObservable.fromHasValue(searchBox);
+Observable<List<String>> searchResult = Observable
+    .switchOnNext(searchText.map(matches -> filesService.files(matches).take(10).toList())
+    .share();  // uniform API for single/multi responses and pagination --^
+searchResult.subscribe(resultBox::showFiles);    
+``` 
+So, beside the shared and composable reactive API, Observables unify single/collection and paginated responses, i.e.
+you don't need the common `getUser/getUsers` paired request and the `first/max` pagination params because you can just
+use a single `observeUsers(query).take(max)`. This may not fit all situations, but looks good anyway.
+ 
+## Source code folders 
+
+ * `src/main/java` GWT specific code
+ * `src/main/super` GWT super source to made RxJava classes works
+ * `src/main/replaced` Same as super but generated using regex expressions to replace incompatible expressions
+  
+## Expressions used in replaced code
+
+```groovy
+task gwtResources(type: Copy) {
+    from 'src/main/java';
+    into 'build/super'
+
+    include '**/*.java'
+    exclude '**/schedulers/**' // GWT has only one custom scheduler
+    exclude '**/RxThreadFactory.java' // uses Thread
+    exclude '**/OperatorObserveOn.java' // uses unsafe and references ImmediateScheduler and TrampolineScheduler
+    exclude '**/OnSubscribeCombineLatest.java' // uses BitSet
+    exclude '**/Blocking*.java' // GWT unsupported
+    exclude { details -> details.file.isFile() && !(
+                         details.file.text.contains('FieldUpdater.newUpdater') ||
+                         details.file.text.contains('Collections.synchronized') ||
+                         details.file.text.contains('ArrayDeque') ||
+                         details.file.text.contains('Thread.currentThread().interrupt') ||
+                         details.file.text.contains('Array.newInstance')) }
+
+    includeEmptyDirs = false
+
+    filter { line -> line
+            .replaceAll('AtomicIntegerFieldUpdater.newUpdater\\((.*?).class, \"(.*?)\"\\);',
+                'new rx.internal.util.GwtIntegerFieldUpdater<\$1>() {' +
+                ' @Override protected int getter(\$1 obj) { return obj.\$2; }' +
+                ' @Override protected void setter(\$1 obj, int update) { obj.\$2 = update; } };')
+
+            .replaceAll('AtomicLongFieldUpdater.newUpdater\\((.*?).class, \"(.*?)\"\\);',
+                'new rx.internal.util.GwtLongFieldUpdater<\$1>() {' +
+                ' @Override protected long getter(\$1 obj) { return obj.\$2; }' +
+                ' @Override protected void setter(\$1 obj, long update) { obj.\$2 = update; } };')
+
+            .replaceAll('AtomicReferenceFieldUpdater.newUpdater\\((.*?).class, (.*?).class, \"(.*?)\"\\);',
+                'new rx.internal.util.GwtReferenceFieldUpdater<\$1,\$2>() {' +
+                ' @Override protected \$2 getter(\$1 obj) { return obj.\$3; }' +
+                ' @Override protected void setter(\$1 obj, \$2 update) { obj.\$3 = update; } };')
+
+            .replaceAll('Collections.synchronized(.*?)\\((.*?)\\);', '\$2;')
+            .replaceAll('ArrayDeque(.*?)\\((.*?)\\)', 'LinkedList\$1()')
+            .replaceAll('ArrayDeque', 'LinkedList')
+            .replaceAll('Thread.currentThread\\(\\)\\.interrupt\\(\\);', '')
+            .replaceAll('Array.newInstance\\([^,]*, (.*?)\\)', 'new Object[\$1]')
+    }
+}
+```

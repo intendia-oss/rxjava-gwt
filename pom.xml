@@ -8,13 +8,12 @@
     <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
-        <gwt.compiler.source>1.7</gwt.compiler.source>
-        <gwt.compiler.target>1.7</gwt.compiler.target>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <gwt.version>2.7.0</gwt.version>
+        <rxjava.version>1.0.10</rxjava.version>
     </properties>
 
     <dependencies>
@@ -22,12 +21,12 @@
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
-            <version>1.0.0-rc.3</version>
+            <version>${rxjava.version}</version>
         </dependency>
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
-            <version>1.0.0-rc.3</version>
+            <version>${rxjava.version}</version>
             <classifier>sources</classifier>
         </dependency>
         <!-- other dependencies -->
@@ -66,10 +65,12 @@
                 </includes>
             </resource>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>src/main/replaced</directory>
+                <targetPath>rx/super</targetPath>
             </resource>
             <resource>
-                <directory>${project.build.directory}/generated-sources/apt</directory>
+                <directory>src/main/super</directory>
+                <targetPath>rx/super</targetPath>
             </resource>
         </resources>
         <plugins>
@@ -80,6 +81,8 @@
                 <configuration>
                     <mode>htmlunit</mode>
                     <includes>**/*GwtTest.java</includes>
+                    <strict>true</strict>
+                    <logLevel>TRACE</logLevel>
                 </configuration>
                 <executions>
                     <execution>
