@@ -162,6 +162,11 @@
     <profiles>
         <profile>
             <id>java8</id>
+            <activation>
+                <property>
+                    <name>d8</name>
+                </property>
+            </activation>
             <properties>
                 <maven.compiler.source>1.8</maven.compiler.source>
                 <maven.compiler.target>1.8</maven.compiler.target>
@@ -195,6 +200,43 @@
                     </snapshots>
                 </pluginRepository>
             </pluginRepositories>
+        </profile>
+        <profile>
+            <id>perf</id>
+            <activation>
+                <property>
+                    <name>d8</name>
+                </property>
+            </activation>
+            <properties>
+            </properties>
+            <build>
+                <finalName>d8</finalName>
+                <resources>
+                    <resource>
+                        <directory>src/main/perf</directory>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>gwt-maven-plugin</artifactId>
+                        <version>${gwt.version}</version>
+                        <configuration>
+                            <module>rx.Perf</module>
+                            <force>true</force>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

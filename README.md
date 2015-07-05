@@ -90,3 +90,20 @@ task gwtResources(type: Copy) {
     }
 }
 ```
+
+## Profiling with d8
+
+Install V8 and create aliases for d8 and xxx-tick-processor.
+
+```
+mvn -Dd8 compile
+cd target/d8/perf
+d8 -prof --log-timer-events perf.nocache.js
+tick-processor --source-map=../WEB-INF/deploy/perf/symbolMaps/<HASH>_sourceMap0.json v8.log
+```
+
+[Install V8 on Mac](https://gist.github.com/kevincennis)
+[Profiling GWT applications with v8 and d8](http://blog.daniel-kurka.de/2014/01/profiling-gwt-applications-with-v8-and.html)
+[Performance Tips for JavaScript in V8](http://www.html5rocks.com/en/tutorials/speed/v8/)
+
+
