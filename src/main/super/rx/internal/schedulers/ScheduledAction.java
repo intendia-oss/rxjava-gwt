@@ -15,25 +15,23 @@
  */
 package rx.internal.schedulers;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import rx.Subscription;
 import rx.functions.Action0;
+import rx.internal.util.SubscriptionList;
 import rx.subscriptions.CompositeSubscription;
-
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * A {@code Runnable} that executes an {@code Action0} and can be cancelled. The analogue is the
  * {@code Subscriber} in respect of an {@code Observer}.
  */
 public final class ScheduledAction implements Runnable, Subscription {
-    final CompositeSubscription cancel;
+    final SubscriptionList cancel;
     final Action0 action;
-    final AtomicInteger once = new AtomicInteger();
 
     public ScheduledAction(Action0 action) {
         this.action = action;
-        this.cancel = new CompositeSubscription();
+        this.cancel = new SubscriptionList();
     }
 
     @Override
@@ -52,7 +50,7 @@ public final class ScheduledAction implements Runnable, Subscription {
 
     @Override
     public void unsubscribe() {
-        if (once.compareAndSet(0, 1)) {
+        if (!cancel.isUnsubscribed()) {
             cancel.unsubscribe();
         }
     }
@@ -79,12 +77,11 @@ public final class ScheduledAction implements Runnable, Subscription {
     }
 
     /** Remove a child subscription from a composite when unsubscribing. */
-    private static final class Remover implements Subscription {
-        final Subscription s;
+    private static final class Remover extends AtomicBoolean implements Subscription {
+        final ScheduledAction s;
         final CompositeSubscription parent;
-        final AtomicInteger once = new AtomicInteger();
 
-        public Remover(Subscription s, CompositeSubscription parent) {
+        public Remover(ScheduledAction s, CompositeSubscription parent) {
             this.s = s;
             this.parent = parent;
         }
@@ -96,7 +93,7 @@ public final class ScheduledAction implements Runnable, Subscription {
 
         @Override
         public void unsubscribe() {
-            if (once.compareAndSet(0, 1)) {
+            if (compareAndSet(false, true)) {
                 parent.remove(s);
             }
         }
