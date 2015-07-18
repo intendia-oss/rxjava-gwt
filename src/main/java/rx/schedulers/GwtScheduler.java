@@ -11,9 +11,10 @@ import rx.plugins.RxJavaPlugins;
 import rx.plugins.RxJavaSchedulersHook;
 import rx.subscriptions.Subscriptions;
 
-class GwtScheduler extends Scheduler {
+public class GwtScheduler extends Scheduler {
 
-    private static final GwtScheduler INSTANCE = new GwtScheduler();
+    public static final GwtScheduler INSTANCE = new GwtScheduler();
+    public static final com.google.gwt.core.client.Scheduler SCHEDULER = com.google.gwt.core.client.Scheduler.get();
 
     static GwtScheduler instance() {
         return INSTANCE;
@@ -32,7 +33,7 @@ class GwtScheduler extends Scheduler {
         volatile boolean isUnsubscribed;
 
         public InnerGwtWorker() {
-            executor = com.google.gwt.core.client.Scheduler.get();
+            executor = SCHEDULER;
             schedulersHook = RxJavaPlugins.getInstance().getSchedulersHook();
         }
 

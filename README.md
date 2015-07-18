@@ -57,6 +57,7 @@ task gwtResources(type: Copy) {
     exclude '**/OperatorObserveOn.java' // uses unsafe and references ImmediateScheduler and TrampolineScheduler
     exclude '**/OnSubscribeCombineLatest.java' // uses BitSet
     exclude '**/Blocking*.java' // GWT unsupported
+    exclude '**/BackpressureDrainManager.java' // Custom GWT version
     exclude { details -> details.file.isFile() && !(
                          details.file.text.contains('FieldUpdater.newUpdater') ||
                          details.file.text.contains('Collections.synchronized') ||
@@ -96,10 +97,10 @@ task gwtResources(type: Copy) {
 Install V8 and create aliases for d8 and xxx-tick-processor.
 
 ```
-mvn -Dd8 compile
+mvn -Dd8 package
 cd target/d8/perf
 d8 -prof --log-timer-events perf.nocache.js
-tick-processor --source-map=../WEB-INF/deploy/perf/symbolMaps/<HASH>_sourceMap0.json v8.log
+tick-processor --source-map=../../gwt/deploy/perf/symbolMaps/<HASH>_sourceMap0.json v8.log
 ```
 
 [Install V8 on Mac](https://gist.github.com/kevincennis)
