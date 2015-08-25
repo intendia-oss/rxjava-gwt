@@ -10,7 +10,7 @@ public final class Schedulers {
     }
 
     public static Scheduler trampoline() {
-        return GwtScheduler.instance();
+        return TrampolineScheduler.instance();
     }
 
     public static Scheduler computation() {
