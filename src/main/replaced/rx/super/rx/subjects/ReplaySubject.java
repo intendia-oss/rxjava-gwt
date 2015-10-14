@@ -15,16 +15,16 @@
  */
 package rx.subjects;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.Array;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
+import rx.*;
 import rx.Observer;
-import rx.Scheduler;
 import rx.annotations.Experimental;
 import rx.exceptions.Exceptions;
-import rx.functions.Action1;
-import rx.functions.Func1;
+import rx.functions.*;
 import rx.internal.operators.NotificationLite;
 import rx.internal.util.UtilityFunctions;
 import rx.schedulers.Timestamped;
@@ -114,7 +114,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
                 boolean skipFinal = false;
                 try {
                     for (;;) {
-                        int idx = o.index();
+                        int idx = o.<Integer>index();
                         int sidx = state.index;
                         if (idx != sidx) {
                             Integer j = state.replayObserverFromIndex(idx, o);
@@ -347,7 +347,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
             }
 
         };
-
+        
         return new ReplaySubject<T>(ssm, ssm, state);
     }
 
@@ -360,7 +360,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
         this.ssm = ssm;
         this.state = state;
     }
-
+    
     @Override
     public void onNext(T t) {
         if (ssm.active) {
@@ -372,7 +372,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
             }
         }
     }
-
+    
     @Override
     public void onError(final Throwable e) {
         if (ssm.active) {
@@ -394,7 +394,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
             Exceptions.throwIfAny(errors);
         }
     }
-
+    
     @Override
     public void onCompleted() {
         if (ssm.active) {
@@ -430,11 +430,11 @@ public final class ReplaySubject<T> extends Subject<T, T> {
             return true;
         }
     }
-
+    
     // *********************
     // State implementations
     // *********************
-
+    
     /**
      * The unbounded replay state.
      * @param <T> the input and output type
@@ -465,7 +465,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
         public void accept(Observer<? super T> o, int idx) {
             nl.accept(o, list.get(idx));
         }
-
+        
         @Override
         public void complete() {
             if (!terminated) {
@@ -490,14 +490,14 @@ public final class ReplaySubject<T> extends Subject<T, T> {
 
         @Override
         public boolean replayObserver(SubjectObserver<? super T> observer) {
-
+            
             synchronized (observer) {
                 observer.first = false;
                 if (observer.emitting) {
                     return false;
                 }
             }
-
+            
             Integer lastEmittedLink = observer.index();
             if (lastEmittedLink != null) {
                 int l = replayObserverFromIndex(lastEmittedLink, observer);
@@ -523,7 +523,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
         public Integer replayObserverFromIndexTest(Integer idx, SubjectObserver<? super T> observer, long now) {
             return replayObserverFromIndex(idx, observer);
         }
-
+        
         @Override
         public int size() {
             int idx = index; // aquire
@@ -575,10 +575,10 @@ public final class ReplaySubject<T> extends Subject<T, T> {
             return null;
         }
     }
-
-
-    /**
-     * The bounded replay state.
+    
+    
+    /** 
+     * The bounded replay state. 
      * @param <T> the input and output type
      */
     static final class BoundedState<T> implements ReplayState<T, NodeList.Node<Object>> {
@@ -589,8 +589,8 @@ public final class ReplaySubject<T> extends Subject<T, T> {
         final NotificationLite<T> nl = NotificationLite.instance();
         volatile boolean terminated;
         volatile NodeList.Node<Object> tail;
-
-        public BoundedState(EvictionPolicy evictionPolicy, Func1<Object, Object> enterTransform,
+        
+        public BoundedState(EvictionPolicy evictionPolicy, Func1<Object, Object> enterTransform, 
                 Func1<Object, Object> leaveTransform) {
             this.list = new NodeList<Object>();
             this.tail = list.tail;
@@ -614,7 +614,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
                 evictionPolicy.evictFinal(list);
                 tail = list.tail;
             }
-
+            
         }
         @Override
         public void error(Throwable e) {
@@ -655,7 +655,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
                     return false;
                 }
             }
-
+            
             NodeList.Node<Object> lastEmittedLink = observer.index();
             NodeList.Node<Object> l = replayObserverFromIndex(lastEmittedLink, observer);
             observer.index(l);
@@ -685,7 +685,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
         public boolean terminated() {
             return terminated;
         }
-
+        
         @Override
         public int size() {
             int size = 0;
@@ -755,11 +755,11 @@ public final class ReplaySubject<T> extends Subject<T, T> {
             return nl.getValue(value);
         }
     }
-
+    
     // **************
     // API interfaces
     // **************
-
+    
     /**
      * General API for replay state management.
      * @param <T> the input and output type
@@ -812,7 +812,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
          * @return true if the replay buffer is empty of non-terminal values
          */
         boolean isEmpty();
-
+        
         /**
          * Copy the current values (minus any terminal value) from the buffer into the array
          * or create a new array if there isn't enough room.
@@ -827,7 +827,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
          */
         T latest();
     }
-
+    
     /** Interface to manage eviction checking. */
     interface EvictionPolicy {
         /**
@@ -850,21 +850,21 @@ public final class ReplaySubject<T> extends Subject<T, T> {
         void evictFinal(NodeList<Object> list);
     }
 
-
+    
     // ************************
     // Callback implementations
     // ************************
-
+    
     /**
      * Remove elements from the beginning of the list if the size exceeds some threshold.
      */
     static final class SizeEvictionPolicy implements EvictionPolicy {
         final int maxSize;
-
+        
         public SizeEvictionPolicy(int maxSize) {
             this.maxSize = maxSize;
         }
-
+        
         @Override
         public void evict(NodeList<Object> t1) {
             while (t1.size() > maxSize) {
@@ -876,7 +876,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
         public boolean test(Object value, long now) {
             return false; // size gets never stale
         }
-
+        
         @Override
         public void evictFinal(NodeList<Object> t1) {
             while (t1.size() > maxSize + 1) {
@@ -891,12 +891,12 @@ public final class ReplaySubject<T> extends Subject<T, T> {
     static final class TimeEvictionPolicy implements EvictionPolicy {
         final long maxAgeMillis;
         final Scheduler scheduler;
-
+        
         public TimeEvictionPolicy(long maxAgeMillis, Scheduler scheduler) {
             this.maxAgeMillis = maxAgeMillis;
             this.scheduler = scheduler;
         }
-
+        
         @Override
         public void evict(NodeList<Object> t1) {
             long now = scheduler.now();
@@ -909,7 +909,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
                 }
             }
         }
-
+        
         @Override
         public void evictFinal(NodeList<Object> t1) {
             long now = scheduler.now();
@@ -928,7 +928,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
             Timestamped<?> ts = (Timestamped<?>)value;
             return ts.getTimestampMillis() <= now - maxAgeMillis;
         }
-
+        
     }
     /**
      * Pairs up two eviction policy callbacks.
@@ -936,18 +936,18 @@ public final class ReplaySubject<T> extends Subject<T, T> {
     static final class PairEvictionPolicy implements EvictionPolicy {
         final EvictionPolicy first;
         final EvictionPolicy second;
-
+        
         public PairEvictionPolicy(EvictionPolicy first, EvictionPolicy second) {
             this.first = first;
             this.second = second;
         }
-
+        
         @Override
         public void evict(NodeList<Object> t1) {
             first.evict(t1);
             second.evict(t1);
         }
-
+        
         @Override
         public void evictFinal(NodeList<Object> t1) {
             first.evictFinal(t1);
@@ -959,7 +959,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
             return first.test(value, now) || second.test(value, now);
         }
     };
-
+    
     /** Maps the values to Timestamped. */
     static final class AddTimestamped implements Func1<Object, Object> {
         final Scheduler scheduler;
@@ -991,13 +991,13 @@ public final class ReplaySubject<T> extends Subject<T, T> {
         public DefaultOnAdd(BoundedState<T> state) {
             this.state = state;
         }
-
+        
         @Override
         public void call(SubjectObserver<T> t1) {
             NodeList.Node<Object> l = state.replayObserverFromIndex(state.head(), t1);
             t1.index(l);
         }
-
+        
     }
     /**
      * Action of replaying non-stale entries of the buffer on subscribe
@@ -1011,7 +1011,7 @@ public final class ReplaySubject<T> extends Subject<T, T> {
             this.state = state;
             this.scheduler = scheduler;
         }
-
+        
         @Override
         public void call(SubjectObserver<T> t1) {
             NodeList.Node<Object> l;

@@ -18,6 +18,7 @@ package rx.internal.operators;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
 import rx.Observable;
 import rx.Observable.Operator;
 import rx.Scheduler;

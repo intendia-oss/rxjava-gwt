@@ -180,7 +180,7 @@ public final class BackpressureDrainManager implements Producer, Scheduler.Repea
                 if (o == null) {
                     Throwable e = exception;
                     actual.complete(e);
-                    return false;
+                    return TERMINATE;
                 }
                 if (requestedCount == 0) {
                     return TERMINATE;

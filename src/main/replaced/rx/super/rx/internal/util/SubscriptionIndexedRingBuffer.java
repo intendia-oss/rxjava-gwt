@@ -16,6 +16,7 @@
 package rx.internal.util;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
 import rx.Subscription;
 import rx.functions.Func1;
 

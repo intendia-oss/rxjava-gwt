@@ -18,6 +18,7 @@ package rx.internal.util;
 import rx.*;
 import rx.Scheduler.Worker;
 import rx.functions.Action0;
+import rx.functions.Func1;
 
 public final class ScalarSynchronousObservable<T> extends Observable<T> {
 
@@ -35,9 +36,9 @@ public final class ScalarSynchronousObservable<T> extends Observable<T> {
                 /*
                  *  We don't check isUnsubscribed as it is a significant performance impact in the fast-path use cases.
                  *  See PerfBaseline tests and https://github.com/ReactiveX/RxJava/issues/1383 for more information.
-                 *  The assumption here is that when asking for a single item we should emit it and not concern ourselves with 
-                 *  being unsubscribed already. If the Subscriber unsubscribes at 0, they shouldn't have subscribed, or it will 
-                 *  filter it out (such as take(0)). This prevents us from paying the price on every subscription. 
+                 *  The assumption here is that when asking for a single item we should emit it and not concern ourselves with
+                 *  being unsubscribed already. If the Subscriber unsubscribes at 0, they shouldn't have subscribed, or it will
+                 *  filter it out (such as take(0)). This prevents us from paying the price on every subscription.
                  */
                 s.onNext(t);
                 s.onCompleted();
@@ -98,5 +99,33 @@ public final class ScalarSynchronousObservable<T> extends Observable<T> {
             }
             subscriber.onCompleted();
         }
+    }
+
+    public <R> Observable<R> scalarFlatMap(final Func1<? super T, ? extends Observable<? extends R>> func) {
+        return create(new OnSubscribe<R>() {
+            @Override
+            public void call(final Subscriber<? super R> child) {
+                Observable<? extends R> o = func.call(t);
+                if (o.getClass() == ScalarSynchronousObservable.class) {
+                    child.onNext(((ScalarSynchronousObservable<? extends R>)o).t);
+                    child.onCompleted();
+                } else {
+                    o.unsafeSubscribe(new Subscriber<R>(child) {
+                        @Override
+                        public void onNext(R v) {
+                            child.onNext(v);
+                        }
+                        @Override
+                        public void onError(Throwable e) {
+                            child.onError(e);
+                        }
+                        @Override
+                        public void onCompleted() {
+                            child.onCompleted();
+                        }
+                    });
+                }
+            }
+        });
     }
 }

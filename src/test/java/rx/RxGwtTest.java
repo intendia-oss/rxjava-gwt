@@ -10,6 +10,8 @@ import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.observables.ConnectableObservable;
 import rx.schedulers.Schedulers;
+import rx.subjects.AsyncSubject;
+import rx.subjects.BehaviorSubject;
 
 public class RxGwtTest extends GWTTestCase {
 
@@ -34,10 +36,7 @@ public class RxGwtTest extends GWTTestCase {
                 .skip(1)
                 .lastOrDefault(0)
                 .subscribe(new Action1<Integer>() {
-                    @Override public void call(Integer x) {
-                        assertEquals(0, x.intValue());
-                        finishTest();
-                    }
+                    public void call(Integer x) { assertEquals(0, x.intValue()); finishTest(); }
                 });
     }
 
@@ -46,22 +45,13 @@ public class RxGwtTest extends GWTTestCase {
         Observable.range(1, 10)
                 .doOnError(onError)
                 .filter(new Func1<Integer, Boolean>() {
-                    @Override
-                    public Boolean call(Integer x) {
-                        return x % 2 == 0;
-                    }
+                    public Boolean call(Integer x) { return x % 2 == 0; }
                 })
                 .reduce(0, new Func2<Integer, Integer, Integer>() {
-                    @Override
-                    public Integer call(Integer acc, Integer x) {
-                        return acc + x;
-                    }
+                    public Integer call(Integer acc, Integer x) { return acc + x; }
                 })
                 .subscribe(new Action1<Number>() {
-                    @Override public void call(Number x) {
-                        assertEquals(30, x.intValue());
-                        finishTest();
-                    }
+                    public void call(Number x) { assertEquals(30, x.intValue()); finishTest(); }
                 });
     }
 
@@ -71,17 +61,35 @@ public class RxGwtTest extends GWTTestCase {
                 .doOnError(onError)
                 .take(10)
                 .map(new Func1<Long, Long>() {
-                    @Override public Long call(Long aLong) {
-                        return aLong + 1;
-                    }
+                    public Long call(Long aLong) { return aLong + 1; }
                 })
                 .last()
                 .subscribe(new Action1<Number>() {
-                    @Override public void call(Number x) {
-                        assertEquals(10, x.intValue());
-                        finishTest();
-                    }
+                    public void call(Number x) { assertEquals(10, x.intValue()); finishTest(); }
                 });
+    }
+
+    public void test_that_async_compiles() {
+        delayTestFinish(1000);
+        final AsyncSubject<String> subject = AsyncSubject.create();
+        Observable.just("unexpected", "expected").subscribe(new Action1<String>() {
+            public void call(String n) { subject.onNext(n); }
+        });
+        subject.subscribe(new Action1<String>() {
+            public void call(String n) { assertEquals("expected", n); finishTest(); }
+        });
+        subject.onCompleted();
+    }
+
+    public void test_that_behaviour_compiles() {
+        delayTestFinish(1000);
+        final BehaviorSubject<String> subject = BehaviorSubject.create();
+        Observable.just("expected").subscribe(new Action1<String>() {
+            public void call(String n) { subject.onNext(n); }
+        });
+        subject.subscribe(new Action1<String>() {
+            public void call(String n) { assertEquals("expected", n); finishTest(); }
+        });
     }
 
     public void test_that_retry_and_trampoline_works() {
@@ -119,5 +127,36 @@ public class RxGwtTest extends GWTTestCase {
         assertEquals(2, onSubscription.get());
         assertEquals(1, onError.get());
         assertEquals(1, onSuccess.get());
+    }
+
+    public void test_that_single_works() {
+        delayTestFinish(1000);
+        Single.just("o")
+                .zipWith(Single.create(new Single.OnSubscribe<String>() {
+                    @Override public void call(SingleSubscriber<? super String> s) {
+                        s.onSuccess("_");
+                    }
+                }), new Func2<String, String, String>() {
+                    @Override public String call(String a, String b) {
+                        return a + b;
+                    }
+                })
+                .flatMap(new Func1<String, Single<String>>() {
+                    @Override public Single<String> call(final String a) {
+                        return Observable.timer(10, MILLISECONDS)
+                                .toSingle()
+                                .map(new Func1<Long, String>() {
+                                    @Override public String call(Long b) {
+                                        return a + b;
+                                    }
+                                });
+                    }
+                })
+                .subscribe(new Action1<String>() {
+                    @Override public void call(String x) {
+                        assertEquals("o_0", x);
+                        finishTest();
+                    }
+                });
     }
 }

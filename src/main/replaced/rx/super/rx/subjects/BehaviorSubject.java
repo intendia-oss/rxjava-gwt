@@ -15,8 +15,10 @@
  */
 package rx.subjects;
 
-import java.util.ArrayList;
-import java.util.List;
+
+import java.lang.reflect.Array;
+import java.util.*;
+
 import rx.Observer;
 import rx.annotations.Experimental;
 import rx.exceptions.Exceptions;
@@ -106,7 +108,7 @@ public final class BehaviorSubject<T> extends Subject<T, T> {
             
         };
         state.onTerminated = state.onAdded;
-        return new BehaviorSubject<T>(state, state);
+        return new BehaviorSubject<T>(state, state); 
     }
 
     private final SubjectSubscriptionManager<T> state;

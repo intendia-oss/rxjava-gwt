@@ -3,6 +3,7 @@ package rx.schedulers;
 import rx.Scheduler;
 
 public final class Schedulers {
+
     private Schedulers() {}
 
     public static Scheduler immediate() {

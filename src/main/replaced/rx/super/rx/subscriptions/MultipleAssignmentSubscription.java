@@ -16,6 +16,7 @@
 package rx.subscriptions;
 
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
 import rx.Observable;
 import rx.Subscription;
 

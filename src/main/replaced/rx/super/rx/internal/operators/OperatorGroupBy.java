@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
 import rx.Observable;
 import rx.Observable.OnSubscribe;
 import rx.Observable.Operator;
@@ -258,7 +259,9 @@ public class OperatorGroupBy<T, K, R> implements Operator<GroupedObservable<K, R
                         }
 
                     }).unsafeSubscribe(new Subscriber<T>(o) {
-
+                        @Override
+                        public void onStart() {
+                        }
                         @Override
                         public void onCompleted() {
                             o.onCompleted();

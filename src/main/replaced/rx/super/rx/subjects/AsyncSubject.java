@@ -15,8 +15,9 @@
  */
 package rx.subjects;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.Array;
+import java.util.*;
+
 import rx.Observer;
 import rx.annotations.Experimental;
 import rx.exceptions.Exceptions;

@@ -22,8 +22,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <gwt.version>2.7.0</gwt.version>
-        <rxjava.version>1.0.10</rxjava.version>
-        <gwtPlugin.version>1.0-rc-2</gwtPlugin.version>
+        <rxjava.version>1.0.14</rxjava.version>
+        <gwtPlugin.version>1.0-rc-3</gwtPlugin.version>
     </properties>
 
     <dependencies>
@@ -148,6 +148,7 @@
                             <moduleName>rx.Perf</moduleName>
                             <skipModule>true</skipModule>
                             <skipTests>true</skipTests>
+                            <compilerArgs><arg>-strict</arg></compilerArgs>
                         </configuration>
                         <executions>
                             <execution>

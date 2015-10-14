@@ -1,9 +1,8 @@
 package rx.schedulers;
 
-import com.google.gwt.core.client.Scheduler.RepeatingCommand;
+import com.google.gwt.core.client.Scheduler;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
-import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action0;
 import rx.internal.schedulers.ScheduledAction;
@@ -11,29 +10,32 @@ import rx.plugins.RxJavaPlugins;
 import rx.plugins.RxJavaSchedulersHook;
 import rx.subscriptions.Subscriptions;
 
-public class GwtScheduler extends Scheduler {
+public class GwtScheduler extends rx.Scheduler {
+    public static rx.Scheduler INSTANCE;
 
-    public static final GwtScheduler INSTANCE = new GwtScheduler();
-    public static final com.google.gwt.core.client.Scheduler SCHEDULER = com.google.gwt.core.client.Scheduler.get();
-
-    static GwtScheduler instance() {
+    public static rx.Scheduler instance() {
+        if (INSTANCE == null) {
+            INSTANCE = new GwtScheduler(Scheduler.get());
+        }
         return INSTANCE;
     }
 
-    GwtScheduler() {}
+    private final Scheduler executor;
+
+    public GwtScheduler(Scheduler executor) {
+        this.executor = executor;
+    }
 
     @Override
     public Worker createWorker() {
         return new InnerGwtWorker();
     }
 
-    private static class InnerGwtWorker extends Scheduler.Worker {
-        private final com.google.gwt.core.client.Scheduler executor;
+    private class InnerGwtWorker extends rx.Scheduler.Worker {
         private final RxJavaSchedulersHook schedulersHook;
-        volatile boolean isUnsubscribed;
+        private volatile boolean isUnsubscribed;
 
         public InnerGwtWorker() {
-            executor = SCHEDULER;
             schedulersHook = RxJavaPlugins.getInstance().getSchedulersHook();
         }
 
@@ -77,7 +79,7 @@ public class GwtScheduler extends Scheduler {
 
     }
 
-    private static class SubscriptionRepeatingCommand implements RepeatingCommand, Subscription {
+    private static class SubscriptionRepeatingCommand implements Scheduler.RepeatingCommand, Subscription {
         private final ScheduledAction run;
         private boolean isUnsubscribed;
 

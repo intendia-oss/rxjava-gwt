@@ -17,6 +17,7 @@ package rx.internal.operators;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
 import rx.Observer;
 import rx.Subscriber;
 import rx.functions.Action0;
@@ -63,9 +64,9 @@ public final class BufferUntilSubscriber<T> extends Subject<T, T> {
         /** Field updater for observerRef. */
         @SuppressWarnings("rawtypes")
         static final AtomicReferenceFieldUpdater<State, Observer> OBSERVER_UPDATER
-                = new rx.internal.util.GwtReferenceFieldUpdater<State, Observer>() { @Override protected Observer getter(State obj) { return obj.observerRef; } @Override protected void setter(State obj, Observer update) { obj.observerRef = update; } };
+                = new rx.internal.util.GwtReferenceFieldUpdater<State,Observer>() { @Override protected Observer getter(State obj) { return obj.observerRef; } @Override protected void setter(State obj, Observer update) { obj.observerRef = update; } };
 
-        boolean casObserverRef(Observer<? super T> expected, Observer<? super T> next) {
+        boolean casObserverRef(Observer<? super T>  expected, Observer<? super T>  next) {
             return OBSERVER_UPDATER.compareAndSet(this, expected, next);
         }
 

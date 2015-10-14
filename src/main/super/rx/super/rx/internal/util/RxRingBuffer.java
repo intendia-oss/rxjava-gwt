@@ -21,9 +21,6 @@ import rx.Observer;
 import rx.Subscription;
 import rx.exceptions.MissingBackpressureException;
 import rx.internal.operators.NotificationLite;
-import rx.internal.util.unsafe.SpmcArrayQueue;
-import rx.internal.util.unsafe.SpscArrayQueue;
-import rx.internal.util.unsafe.UnsafeAccess;
 
 /**
  * This assumes Spsc or Spmc usage. This means only a single producer calling the on* methods. This is the Rx contract of an Observer.

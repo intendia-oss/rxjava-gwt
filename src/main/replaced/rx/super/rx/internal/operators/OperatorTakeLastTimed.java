@@ -15,12 +15,13 @@
  */
 package rx.internal.operators;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.concurrent.TimeUnit;
 import rx.Observable.Operator;
 import rx.Scheduler;
 import rx.Subscriber;
+
+import java.util.LinkedList;
+import java.util.Deque;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Returns an Observable that emits the last <code>count</code> items emitted by the source Observable.
