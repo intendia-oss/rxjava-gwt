@@ -32,8 +32,8 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/intendia-oss/rxjava-gwt.git</connection>
-        <developerConnection>scm:git:git://github.com/intendia-oss/rxjava-gwt.git</developerConnection>
+        <connection>scm:git:https://github.com/intendia-oss/rxjava-gwt.git</connection>
+        <developerConnection>scm:git:git@github.com:intendia-oss/rxjava-gwt.git</developerConnection>
         <url>https://github.com/intendia-oss/rxjava-gwt</url>
         <tag>HEAD</tag>
     </scm>
