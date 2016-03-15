@@ -1,7 +1,21 @@
 language: java
 
 jdk:
+  - oraclejdk7
+  - openjdk7
   - oraclejdk8
 
+env:
+  - GWT_VERSION=2.7.0
+  - GWT_VERSION=2.8.0-beta1
+
 after_success:
-  - ci/deploy-site.sh
+  - ci/deploy-snapshot.sh
+
+notifications:
+  email: false
+
+sudo: false
+cache:
+  directories:
+    - $HOME/.m2

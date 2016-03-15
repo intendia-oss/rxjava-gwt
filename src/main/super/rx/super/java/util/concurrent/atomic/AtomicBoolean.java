@@ -41,5 +41,4 @@ public class AtomicBoolean implements java.io.Serializable {
     public String toString() {
         return Boolean.toString(get());
     }
-
 }

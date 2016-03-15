@@ -1,4 +1,4 @@
-# RxJava GWT [![Build Status](https://travis-ci.org/ibaca/rxjava-gwt.svg)](https://travis-ci.org/ibaca/rxjava-gwt)
+# RxJava GWT [![Build Status](https://travis-ci.org/intendia-oss/rxjava-gwt.svg)](https://travis-ci.org/intendia-oss/rxjava-gwt)
 
 Currently this project is just a patch over [RxJava](https://github.com/ReactiveX/RxJava) to made it 
 works in GWT (client side).

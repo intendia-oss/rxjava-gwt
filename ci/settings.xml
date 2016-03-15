@@ -4,6 +4,11 @@
             <id>github-ssh</id>
             <username>git</username>
         </server>
+        <server>
+            <id>sonatype-nexus-snapshots</id>
+            <username>${env.CI_DEPLOY_USERNAME}</username>
+            <password>${env.CI_DEPLOY_PASSWORD}</password>
+        </server>
     </servers>
 </settings>
 

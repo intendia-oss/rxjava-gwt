@@ -1,18 +1,58 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>rxjava-gwt</groupId>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
+
+    <groupId>com.intendia.gwt</groupId>
     <artifactId>rxjava-gwt</artifactId>
-    <version>0.1-SNAPSHOT</version>
-    <name>RxJava GWT</name>
-    <url>http://ibaca.github.io/rxjava-gwt</url>
     <packaging>gwt-lib</packaging>
+    <version>1.0.14-SNAPSHOT</version>
+
+    <name>RxJava GWT</name>
+    <description>RxJava GWT compatibility library</description>
+    <url>https://github.com/intendia-oss/rxjava-gwt</url>
+
+    <inceptionYear>2014</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Ignacio Baca Moreno-Torres</name>
+            <email>ignacio@bacamt.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/intendia-oss/rxjava-gwt.git</connection>
+        <developerConnection>scm:git:git://github.com/intendia-oss/rxjava-gwt.git</developerConnection>
+        <url>https://github.com/intendia-oss/rxjava-gwt</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/intendia-oss/rxjava-gwt/issues</url>
+    </issueManagement>
 
     <distributionManagement>
         <site>
             <id>github-ssh</id>
-            <url>gitsite:git@github.com/ibaca/rxjava-gwt.git</url>
+            <url>gitsite:git@github.com/intendia-oss/rxjava-gwt.git</url>
         </site>
     </distributionManagement>
+
+    <prerequisites>
+        <maven>3</maven>
+    </prerequisites>
 
     <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
@@ -50,11 +90,6 @@
             <artifactId>gwt-dev</artifactId>
             <version>${gwt.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava-gwt</artifactId>
-            <version>18.0</version>
-        </dependency>
         <!-- test dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -67,9 +102,15 @@
     <build>
         <resources>
             <!-- preferred vs superSourceDirectory bc this is IntelliJ friendly -->
-            <resource><directory>src/main/resources</directory></resource>
-            <resource><directory>src/main/replaced</directory></resource>
-            <resource><directory>src/main/super</directory></resource>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/main/replaced</directory>
+            </resource>
+            <resource>
+                <directory>src/main/super</directory>
+            </resource>
         </resources>
         <plugins>
             <plugin>
@@ -120,7 +161,9 @@
                     <!-- gwt snapshots -->
                     <id>google-sonatype-snapshot</id>
                     <url>https://oss.sonatype.org/content/repositories/google-snapshots/</url>
-                    <snapshots><enabled>true</enabled></snapshots>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
                 </repository>
             </repositories>
         </profile>
@@ -136,7 +179,9 @@
             <build>
                 <finalName>d8</finalName>
                 <resources>
-                    <resource><directory>src/main/perf</directory></resource>
+                    <resource>
+                        <directory>src/main/perf</directory>
+                    </resource>
                 </resources>
                 <plugins>
                     <plugin>
@@ -148,7 +193,9 @@
                             <moduleName>rx.Perf</moduleName>
                             <skipModule>true</skipModule>
                             <skipTests>true</skipTests>
-                            <compilerArgs><arg>-strict</arg></compilerArgs>
+                            <compilerArgs>
+                                <arg>-strict</arg>
+                            </compilerArgs>
                         </configuration>
                         <executions>
                             <execution>
