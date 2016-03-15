@@ -10,7 +10,7 @@
     <groupId>com.intendia.gwt</groupId>
     <artifactId>rxjava-gwt</artifactId>
     <packaging>gwt-lib</packaging>
-    <version>1.0.14-SNAPSHOT</version>
+    <version>1.0.14-beta1</version>
 
     <name>RxJava GWT</name>
     <description>RxJava GWT compatibility library</description>
