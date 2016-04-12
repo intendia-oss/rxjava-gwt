@@ -3,7 +3,16 @@
 Currently this project is just a patch over [RxJava](https://github.com/ReactiveX/RxJava) to made it 
 works in GWT (client side).
 
-### Goals
+## Download
+
+Releases are deployed to [the Central Repository][releases]
+
+Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
+
+ [releases]: https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.intendia.gwt%22%20AND%20a%3A%22rxjava-gwt%22
+ [snap]: https://oss.sonatype.org/content/repositories/snapshots/
+
+## Goals
 
  * Use same RxJava API in the client side
  * Improve RxJava GWT performance (emulate classes)
