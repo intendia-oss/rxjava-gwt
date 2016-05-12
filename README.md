@@ -1,5 +1,7 @@
 # RxJava GWT [![Build Status](https://travis-ci.org/intendia-oss/rxjava-gwt.svg)](https://travis-ci.org/intendia-oss/rxjava-gwt)
 
+[![Join the chat at https://gitter.im/intendia-oss/rxjava-gwt](https://badges.gitter.im/intendia-oss/rxjava-gwt.svg)](https://gitter.im/intendia-oss/rxjava-gwt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Currently this project is just a patch over [RxJava](https://github.com/ReactiveX/RxJava) to made it 
 works in GWT (client side).
 
