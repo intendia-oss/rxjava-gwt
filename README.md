@@ -48,6 +48,11 @@ searchResult.subscribe(resultBox::showFiles);
 So, beside the shared and composable reactive API, Observables unify single/collection and paginated responses, i.e.
 you don't need the common `getUser/getUsers` paired request and the `first/max` pagination params because you can just
 use a single `observeUsers(query).take(max)`. This may not fit all situations, but looks good anyway.
+
+**Note:** [AutoREST GWT](https://github.com/intendia-oss/autorest-gwt) implements 
+the shareable JAX-RS interface using RxJava in the client side and [RxGWT](https://github.com/intendia-oss/rxgwt)
+exposes a lot of common tools like the 'GwtObservable.fromHasValue' in the code example.  
+
  
 ## Source code folders 
 
