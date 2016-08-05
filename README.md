@@ -1,6 +1,9 @@
-# RxJava GWT [![Build Status](https://travis-ci.org/intendia-oss/rxjava-gwt.svg)](https://travis-ci.org/intendia-oss/rxjava-gwt)
+# RxJava GWT
 
-[![Join the chat at https://gitter.im/intendia-oss/rxjava-gwt](https://badges.gitter.im/intendia-oss/rxjava-gwt.svg)](https://gitter.im/intendia-oss/rxjava-gwt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Maven Central][mavenbadge-svg]][mavenbadge]
+[![Build Status][cibadge-svg]][cibadge]
+[![Join the chat][chatbadge-svg]][chatbadge]
+
 
 Currently this project is just a patch over [RxJava](https://github.com/ReactiveX/RxJava) to made it 
 works in GWT (client side).
@@ -124,3 +127,10 @@ tick-processor --source-map=../../gwt/deploy/perf/symbolMaps/<HASH>_sourceMap0.j
 [Performance Tips for JavaScript in V8](http://www.html5rocks.com/en/tutorials/speed/v8/)
 
 
+
+ [mavenbadge]: https://maven-badges.herokuapp.com/maven-central/com.intendia.gwt/rxjava-gwt
+ [mavenbadge-svg]: https://maven-badges.herokuapp.com/maven-central/com.intendia.gwt/rxjava-gwt/badge.svg
+ [cibadge]: https://travis-ci.org/intendia-oss/rxjava-gwt
+ [cibadge-svg]: https://travis-ci.org/intendia-oss/rxjava-gwt.svg
+ [chatbadge]: https://gitter.im/intendia-oss/rxjava-gwt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+ [chatbadge-svg]: https://badges.gitter.im/intendia-oss/rxjava-gwt.svg
