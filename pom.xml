@@ -63,7 +63,7 @@
 
         <gwt.version>2.7.0</gwt.version>
         <rxjava.version>1.0.14</rxjava.version>
-        <gwtPlugin.version>1.0-rc-3</gwtPlugin.version>
+        <gwtPlugin.version>1.0-rc-6</gwtPlugin.version>
     </properties>
 
     <dependencies>
@@ -121,6 +121,7 @@
                 <configuration>
                     <moduleName>rx.Rx</moduleName>
                     <skipModule>true</skipModule>
+                    <failOnError>true</failOnError>
                 </configuration>
             </plugin>
             <plugin>
