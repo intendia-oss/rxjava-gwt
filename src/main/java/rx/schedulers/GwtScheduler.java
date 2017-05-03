@@ -2,20 +2,20 @@ package rx.schedulers;
 
 import com.google.gwt.core.client.Scheduler;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 import rx.Subscription;
 import rx.functions.Action0;
 import rx.internal.schedulers.ScheduledAction;
-import rx.plugins.RxJavaPlugins;
-import rx.plugins.RxJavaSchedulersHook;
+import rx.internal.schedulers.SchedulerLifecycle;
+import rx.plugins.RxJavaHooks;
 import rx.subscriptions.Subscriptions;
 
-public class GwtScheduler extends rx.Scheduler {
+public class GwtScheduler extends rx.Scheduler implements SchedulerLifecycle {
+    public static Scheduler EXECUTOR = Scheduler.get();
     public static rx.Scheduler INSTANCE;
 
     public static rx.Scheduler instance() {
         if (INSTANCE == null) {
-            INSTANCE = new GwtScheduler(Scheduler.get());
+            INSTANCE = new GwtScheduler(EXECUTOR);
         }
         return INSTANCE;
     }
@@ -28,15 +28,23 @@ public class GwtScheduler extends rx.Scheduler {
 
     @Override
     public Worker createWorker() {
-        return new InnerGwtWorker();
+        return new InnerGwtWorker(executor);
     }
 
-    private class InnerGwtWorker extends rx.Scheduler.Worker {
-        private final RxJavaSchedulersHook schedulersHook;
-        private volatile boolean isUnsubscribed;
+    @Override
+    public void start() {
+    }
 
-        public InnerGwtWorker() {
-            schedulersHook = RxJavaPlugins.getInstance().getSchedulersHook();
+    @Override
+    public void shutdown() {
+    }
+
+    static class InnerGwtWorker extends rx.Scheduler.Worker {
+        private final Scheduler executor;
+        private boolean isUnsubscribed;
+
+        InnerGwtWorker(Scheduler executor) {
+            this.executor = executor;
         }
 
         @Override
@@ -45,7 +53,7 @@ public class GwtScheduler extends rx.Scheduler {
         }
 
         @Override
-        public Subscription schedule(final Action0 action, long delayTime, @Nullable TimeUnit unit) {
+        public Subscription schedule(final Action0 action, long delayTime, TimeUnit unit) {
             if (isUnsubscribed) {
                 // don't schedule, we are unsubscribed
                 return Subscriptions.empty();
@@ -53,8 +61,8 @@ public class GwtScheduler extends rx.Scheduler {
             return scheduleActual(action, delayTime, unit);
         }
 
-        public ScheduledAction scheduleActual(final Action0 action, long delayTime, @Nullable TimeUnit unit) {
-            Action0 decoratedAction = schedulersHook.onSchedule(action);
+        private ScheduledAction scheduleActual(final Action0 action, long delayTime, TimeUnit unit) {
+            Action0 decoratedAction = RxJavaHooks.onScheduledAction(action);
             final ScheduledAction run = new ScheduledAction(decoratedAction);
             final SubscriptionRepeatingCommand command = new SubscriptionRepeatingCommand(run);
             if (delayTime <= 0 || unit == null) {

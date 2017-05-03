@@ -1,6 +1,8 @@
 package rx.schedulers;
 
 import rx.Scheduler;
+import rx.internal.schedulers.EventLoopsScheduler;
+import rx.internal.schedulers.TrampolineScheduler;
 
 public final class Schedulers {
 
@@ -15,7 +17,7 @@ public final class Schedulers {
     }
 
     public static Scheduler computation() {
-        return GwtScheduler.instance();
+        return EventLoopsScheduler.INSTANCE;
     }
 
     public static Scheduler io() {

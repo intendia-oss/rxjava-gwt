@@ -5,7 +5,7 @@ public final class UnsafeAccess {
         throw new IllegalStateException("No instances!");
     }
 
-    public static final boolean isUnsafeAvailable() {
+    public static boolean isUnsafeAvailable() {
         return false;
     }
 

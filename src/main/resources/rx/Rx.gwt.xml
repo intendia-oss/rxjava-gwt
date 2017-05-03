@@ -5,23 +5,17 @@
     <source path="">
         <exclude name="super/"/>
         <exclude name="**/Test*.java"/>
-        <exclude name="**/GwtSuite.java"/>
-        <exclude name="internal/operators/Blocking*.java"/>
-        <exclude name="internal/operators/OperatorOnBackpressureBlock.java"/>
-        <exclude name="internal/util/PlatformDependent.java"/>
-        <exclude name="internal/util/RxThreadFactory.java"/>
-        <exclude name="internal/util/unsafe/"/>
-        <exclude name="internal/schedulers/EventLoopsScheduler.java"/>
+        <exclude name="internal/schedulers/CachedThreadScheduler.java"/>
         <exclude name="internal/schedulers/NewThreadWorker.java"/>
-        <exclude name="observables/BlockingObservable.java"/>
-        <exclude name="schedulers/CachedThreadScheduler.java"/>
-        <exclude name="schedulers/ExecutorScheduler.java"/>
-        <exclude name="schedulers/GenericScheduledExecutorService.java"/>
-        <exclude name="schedulers/ImmediateScheduler.java"/>
-        <exclude name="schedulers/NewThreadScheduler.java"/>
-        <exclude name="schedulers/Schedulers.java"/>
-        <exclude name="schedulers/SleepingAction.java"/>
-        <exclude name="schedulers/TrampolineScheduler.java"/>
+        <exclude name="internal/schedulers/NewThreadScheduler.java"/>
+        <exclude name="internal/schedulers/ExecutorScheduler.java"/>
+        <exclude name="internal/schedulers/GenericScheduledExecutorService.java"/>
+        <exclude name="internal/schedulers/GenericScheduledExecutorServiceFactory.java"/>
+        <exclude name="internal/observers/AssertableSubscriberObservable.java"/>
+        <exclude name="internal/util/unsafe/ConcurrentCircularArrayQueue.java"/>
+        <exclude name="internal/util/unsafe/BaseLinkedQueue.java"/>
+        <exclude name="internal/util/unsafe/MpmcArrayQueue.java"/>
+        <exclude name="internal/util/unsafe/MpscLinkedQueue.java"/>
     </source>
     <super-source path="super"/>
 </module>
