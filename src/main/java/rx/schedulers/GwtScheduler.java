@@ -1,116 +1,125 @@
 package rx.schedulers;
 
 import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.RepeatingCommand;
 import java.util.concurrent.TimeUnit;
 import rx.Subscription;
+import rx.exceptions.OnErrorNotImplementedException;
 import rx.functions.Action0;
-import rx.internal.schedulers.ScheduledAction;
-import rx.internal.schedulers.SchedulerLifecycle;
 import rx.plugins.RxJavaHooks;
 import rx.subscriptions.Subscriptions;
 
-public class GwtScheduler extends rx.Scheduler implements SchedulerLifecycle {
+public class GwtScheduler extends rx.Scheduler {
     public static Scheduler EXECUTOR = Scheduler.get();
     public static rx.Scheduler INSTANCE;
 
     public static rx.Scheduler instance() {
         if (INSTANCE == null) {
-            INSTANCE = new GwtScheduler(EXECUTOR);
+            INSTANCE = new GwtScheduler(EXECUTOR, false);
         }
         return INSTANCE;
     }
 
     private final Scheduler executor;
+    private final boolean incremental;
 
-    public GwtScheduler(Scheduler executor) {
+    public GwtScheduler(Scheduler executor, boolean incremental) {
         this.executor = executor;
+        this.incremental = incremental;
     }
 
     @Override
     public Worker createWorker() {
-        return new InnerGwtWorker(executor);
+        return new GwtWorker(executor, incremental);
     }
 
-    @Override
-    public void start() {
-    }
-
-    @Override
-    public void shutdown() {
-    }
-
-    static class InnerGwtWorker extends rx.Scheduler.Worker {
+    static class GwtWorker extends Worker {
         private final Scheduler executor;
-        private boolean isUnsubscribed;
+        private final boolean incremental;
+        private boolean unsubscribed;
 
-        InnerGwtWorker(Scheduler executor) {
+        GwtWorker(Scheduler executor, boolean incremental) {
             this.executor = executor;
+            this.incremental = incremental;
         }
 
         @Override
-        public Subscription schedule(final Action0 action) {
+        public Subscription schedule(Action0 action) {
             return schedule(action, 0, null);
         }
 
         @Override
-        public Subscription schedule(final Action0 action, long delayTime, TimeUnit unit) {
-            if (isUnsubscribed) {
-                // don't schedule, we are unsubscribed
-                return Subscriptions.empty();
+        public Subscription schedule(Action0 action, long delayTime, TimeUnit unit) {
+            if (unsubscribed) {
+                return Subscriptions.unsubscribed();
             }
-            return scheduleActual(action, delayTime, unit);
-        }
 
-        private ScheduledAction scheduleActual(final Action0 action, long delayTime, TimeUnit unit) {
-            Action0 decoratedAction = RxJavaHooks.onScheduledAction(action);
-            final ScheduledAction run = new ScheduledAction(decoratedAction);
-            final SubscriptionRepeatingCommand command = new SubscriptionRepeatingCommand(run);
-            if (delayTime <= 0 || unit == null) {
-                executor.scheduleIncremental(command);
+            action = RxJavaHooks.onScheduledAction(action);
+
+            ScheduledAction scheduledAction = new ScheduledAction(action);
+
+            if (incremental && (delayTime <= 0 || unit == null)) {
+                executor.scheduleIncremental(scheduledAction);
             } else {
-                executor.scheduleFixedDelay(command, (int) unit.toMillis(delayTime));
+                executor.scheduleFixedDelay(scheduledAction, (int) unit.toMillis(delayTime));
             }
-            run.add(command);
 
-            return run;
+            return scheduledAction;
         }
 
         @Override
         public void unsubscribe() {
-            isUnsubscribed = true;
+            unsubscribed = true;
         }
 
         @Override
         public boolean isUnsubscribed() {
-            return isUnsubscribed;
+            return unsubscribed;
         }
 
     }
 
-    private static class SubscriptionRepeatingCommand implements Scheduler.RepeatingCommand, Subscription {
-        private final ScheduledAction run;
-        private boolean isUnsubscribed;
+    private static class ScheduledAction implements RepeatingCommand, Subscription {
+        private final Action0 action;
+        private boolean unsubscribed;
 
-        public SubscriptionRepeatingCommand(ScheduledAction run) {
-            this.run = run;
+        ScheduledAction(Action0 action) {
+            this.action = action;
         }
 
         @Override
         public boolean execute() {
-            if (!isUnsubscribed) {
-                run.run();
+            if (unsubscribed) {
+                return false;
+            }
+            try {
+                action.call();
+            } catch (OnErrorNotImplementedException e) {
+                signalError(new IllegalStateException(
+                        "Exception thrown on Scheduler.Worker thread. Add `onError` handling.", e));
+            } catch (Throwable e) {
+                signalError(new IllegalStateException(
+                        "Fatal Exception thrown on Scheduler.Worker thread.", e));
+            } finally {
+                unsubscribe();
             }
             return false;
         }
 
+        void signalError(Throwable ie) {
+            RxJavaHooks.onError(ie);
+            Thread thread = Thread.currentThread();
+            thread.getUncaughtExceptionHandler().uncaughtException(thread, ie);
+        }
+
         @Override
         public void unsubscribe() {
-            isUnsubscribed = true;
+            unsubscribed = true;
         }
 
         @Override
         public boolean isUnsubscribed() {
-            return isUnsubscribed;
+            return unsubscribed;
         }
     }
 }

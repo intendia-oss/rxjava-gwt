@@ -1,34 +1,14 @@
-/**
- * Copyright 2014 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package rx.internal.schedulers;
 
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-
 import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action0;
 import rx.subscriptions.BooleanSubscription;
 import rx.subscriptions.Subscriptions;
 
-/**
- * Schedules work on the current thread but does not execute immediately. Work is put in a queue and executed
- * after the current unit of work is completed.
- */
 public final class TrampolineScheduler extends Scheduler {
     private static final TrampolineScheduler INSTANCE = new TrampolineScheduler();
 
@@ -46,7 +26,7 @@ public final class TrampolineScheduler extends Scheduler {
     private static class InnerCurrentThreadScheduler extends Scheduler.Worker implements Subscription {
 
         private int counter;
-        private final Queue<TimedAction> queue = new PriorityQueue<>();
+        private final Queue<TimedAction> queue = new PriorityQueue<TimedAction>();
         private final BooleanSubscription innerSubscription = new BooleanSubscription();
         private int wip;
 
@@ -57,7 +37,8 @@ public final class TrampolineScheduler extends Scheduler {
 
         @Override
         public Subscription schedule(Action0 action, long delayTime, TimeUnit unit) {
-            throw new UnsupportedOperationException("trampoline scheduler do not support delayed actions on GWT");
+            if (delayTime <= 0) return schedule(action);
+            else throw new UnsupportedOperationException("trampoline scheduler do not support delayed actions on GWT");
         }
 
         private Subscription enqueue(Action0 action, long execTime) {

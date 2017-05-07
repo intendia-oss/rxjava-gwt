@@ -11,7 +11,7 @@ public final class EventLoopsScheduler extends GwtScheduler {
     public static final EventLoopsScheduler INSTANCE = new EventLoopsScheduler(null);
 
     public EventLoopsScheduler(ThreadFactory tf) {
-        super(GwtScheduler.EXECUTOR);
+        super(GwtScheduler.EXECUTOR, true);
     }
 
     public Subscription scheduleDirect(final Action0 action) {

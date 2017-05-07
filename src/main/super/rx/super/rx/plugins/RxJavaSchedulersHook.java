@@ -1,16 +1,9 @@
-
 package rx.plugins;
 
 import java.util.concurrent.ThreadFactory;
 import rx.Scheduler;
 import rx.annotations.Experimental;
 import rx.functions.Action0;
-import rx.internal.schedulers.CachedThreadScheduler;
-import rx.internal.schedulers.EventLoopsScheduler;
-import rx.internal.schedulers.NewThreadScheduler;
-import rx.internal.util.RxThreadFactory;
-import rx.schedulers.GwtScheduler;
-import rx.schedulers.Schedulers;
 
 public class RxJavaSchedulersHook {
 
@@ -18,22 +11,22 @@ public class RxJavaSchedulersHook {
 
     @Experimental
     public static Scheduler createComputationScheduler() {
-        return GwtScheduler.instance();
+        throw new UnsupportedOperationException();
     }
 
     @Experimental
     public static Scheduler createComputationScheduler(ThreadFactory threadFactory) {
-        return GwtScheduler.instance();
+        throw new UnsupportedOperationException();
     }
 
     @Experimental
     public static Scheduler createIoScheduler() {
-        return GwtScheduler.instance();
+        throw new UnsupportedOperationException();
     }
 
     @Experimental
     public static Scheduler createIoScheduler(ThreadFactory threadFactory) {
-        return GwtScheduler.instance();
+        throw new UnsupportedOperationException();
     }
 
     @Experimental
