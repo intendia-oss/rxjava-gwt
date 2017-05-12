@@ -1,4 +1,6 @@
-package rx.schedulers;
+package rx.gwt.schedulers;
+
+import static java.util.Objects.requireNonNull;
 
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.RepeatingCommand;
@@ -10,21 +12,11 @@ import rx.plugins.RxJavaHooks;
 import rx.subscriptions.Subscriptions;
 
 public class GwtScheduler extends rx.Scheduler {
-    public static Scheduler EXECUTOR = Scheduler.get();
-    public static rx.Scheduler INSTANCE;
-
-    public static rx.Scheduler instance() {
-        if (INSTANCE == null) {
-            INSTANCE = new GwtScheduler(EXECUTOR, false);
-        }
-        return INSTANCE;
-    }
-
-    private final Scheduler executor;
+    protected final Scheduler executor;
     private final boolean incremental;
 
     public GwtScheduler(Scheduler executor, boolean incremental) {
-        this.executor = executor;
+        this.executor = requireNonNull(executor, "executor required");
         this.incremental = incremental;
     }
 
@@ -39,7 +31,7 @@ public class GwtScheduler extends rx.Scheduler {
         private boolean unsubscribed;
 
         GwtWorker(Scheduler executor, boolean incremental) {
-            this.executor = executor;
+            this.executor = requireNonNull(executor, "executor required");
             this.incremental = incremental;
         }
 

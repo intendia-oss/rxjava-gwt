@@ -4,14 +4,8 @@
     <inherits name="com.google.gwt.core.Core"/>
     <source path="">
         <exclude name="super/"/>
-        <exclude name="**/Test*.java"/>
-        <exclude name="internal/schedulers/CachedThreadScheduler.java"/>
-        <exclude name="internal/schedulers/NewThreadWorker.java"/>
-        <exclude name="internal/schedulers/NewThreadScheduler.java"/>
-        <exclude name="internal/schedulers/ExecutorScheduler.java"/>
-        <exclude name="internal/schedulers/GenericScheduledExecutorService.java"/>
-        <exclude name="internal/schedulers/GenericScheduledExecutorServiceFactory.java"/>
         <exclude name="internal/observers/AssertableSubscriberObservable.java"/>
+        <exclude name="internal/schedulers/NewThreadWorker.java"/>
         <exclude name="internal/util/unsafe/ConcurrentCircularArrayQueue.java"/>
         <exclude name="internal/util/unsafe/BaseLinkedQueue.java"/>
         <exclude name="internal/util/unsafe/MpmcArrayQueue.java"/>

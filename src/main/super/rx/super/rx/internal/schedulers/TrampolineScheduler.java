@@ -10,7 +10,7 @@ import rx.subscriptions.BooleanSubscription;
 import rx.subscriptions.Subscriptions;
 
 public final class TrampolineScheduler extends Scheduler {
-    private static final TrampolineScheduler INSTANCE = new TrampolineScheduler();
+    public static final TrampolineScheduler INSTANCE = new TrampolineScheduler();
 
     public static TrampolineScheduler instance() {
         return INSTANCE;

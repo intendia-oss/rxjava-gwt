@@ -18,7 +18,6 @@ package rx.plugins;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import rx.annotations.Experimental;
 import rx.internal.util.GwtIncompatible;
 
 /**
@@ -86,9 +85,9 @@ public class RxJavaPlugins {
      * during application runtime and also bad code could invoke it in
      * the middle of an application life-cycle and really break applications
      * if not used cautiously. For more detailed discussions:
-     * * @see <a href="https://github.com/ReactiveX/RxJava/issues/2297">Make RxJavaPlugins.reset() public</a>
+     * @see <a href="https://github.com/ReactiveX/RxJava/issues/2297">Make RxJavaPlugins.reset() public</a>
+     * @since 1.3
      */
-    @Experimental
     public void reset() {
         INSTANCE.errorHandler.set(null);
         INSTANCE.observableExecutionHook.set(null);
@@ -230,9 +229,8 @@ public class RxJavaPlugins {
      * full class name to load.
      *
      * @return {@link RxJavaCompletableExecutionHook} implementation to use
-     * @since (if this graduates from Experimental/Beta to supported, replace this parenthetical with the release number)
+     * @since 1.3
      */
-    @Experimental
     public RxJavaCompletableExecutionHook getCompletableExecutionHook() {
         if (completableExecutionHook.get() == null) {
             // check for an implementation from System.getProperty first
@@ -258,9 +256,8 @@ public class RxJavaPlugins {
      * @throws IllegalStateException
      *             if called more than once or after the default was initialized (if usage occurs before trying
      *             to register)
-     * @since (if this graduates from Experimental/Beta to supported, replace this parenthetical with the release number)
+     * @since 1.3
      */
-    @Experimental
     public void registerCompletableExecutionHook(RxJavaCompletableExecutionHook impl) {
         if (!completableExecutionHook.compareAndSet(null, impl)) {
             throw new IllegalStateException("Another strategy was already registered: " + singleExecutionHook.get());
