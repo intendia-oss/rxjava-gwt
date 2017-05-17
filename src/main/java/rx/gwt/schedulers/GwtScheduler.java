@@ -37,7 +37,7 @@ public class GwtScheduler extends rx.Scheduler {
 
         @Override
         public Subscription schedule(Action0 action) {
-            return schedule(action, 0, null);
+            return schedule(action, 0, TimeUnit.MILLISECONDS);
         }
 
         @Override

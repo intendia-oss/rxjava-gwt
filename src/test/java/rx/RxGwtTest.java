@@ -43,6 +43,7 @@ public class RxGwtTest extends GWTTestCase {
     public void test_that_range_filter_reduce_works() {
         delayTestFinish(1000);
         Observable.range(1, 10)
+                .observeOn(Schedulers.io())
                 .doOnError(onError)
                 .filter(new Func1<Integer, Boolean>() {
                     public Boolean call(Integer x) { return x % 2 == 0; }
