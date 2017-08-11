@@ -1,13 +1,7 @@
 language: java
 
 jdk:
-  - oraclejdk7
-  - openjdk7
   - oraclejdk8
-
-env:
-  - GWT_VERSION=2.7.0
-  - GWT_VERSION=2.8.1
 
 after_success:
   - ci/deploy-snapshot.sh

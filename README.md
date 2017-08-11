@@ -4,9 +4,31 @@
 [![Build Status][cibadge-svg]][cibadge]
 [![Join the chat][chatbadge-svg]][chatbadge]
 
+Compatibility pack and minimal GWT dependant code to make [RxJava](https://github.com/ReactiveX/RxJava) works in GWT.
+This includes, some missing JDK emulation (most of them from java.util.concurrent). Some minor changes from RxJava
+that might be eventually applied directly to RxJava. And finally some super-sources and a JavaScript friendly Scheduler
+to adapt RxJava to the browser.
 
-Currently this project is just a patch over [RxJava](https://github.com/ReactiveX/RxJava) to made it 
-works in GWT (client side).
+## Getting started
+
+The best way to getting started with RxJava GWT is to download and run some of the examples like 
+[RxSnake](https://github.com/ibaca/rxsnake-gwt), [RxBreakout](https://github.com/ibaca/rxbreakout-gwt), 
+[RxCanvas](https://github.com/ibaca/rxcanvas-gwt) or just finding for 
+[rxjava+gwt in github](https://github.com/search?utf8=%E2%9C%93&q=topic%3Arxjava+topic%3Agwt+&type=Repositories). 
+Most of them can be tried out cloning and executing `mvn gwt:devmode`.                                    
+
+You should note that most of the GWT specific utilities are in [RxGWT](https://github.com/intendia-oss/rxgwt). So you 
+probably want to depend on RxGWT instead of RxJava GWT, which includes common utils like event handlers adapter, 
+request adapters, more advanced schedulers, etc. All those examples depends on RxGWT.
+
+RxGWT contains basic utilities to make arbitrary XHR request, but if you want a typed API or you want to communicate 
+between client and server you should take a look to 
+[AutoREST](https://github.com/intendia-oss/autorest), a REST API lib with RxJava support. 
+[Nominatim](https://github.com/ibaca/autorest-nominatim-example) is a example using 
+the same JAX-RS and RxJava friendly API in JRE (client), JEE (server), Android and GWT. 
+
+If you use GWT RPC, you can use [AutoRPC](https://github.com/intendia-oss/autorpc-gwt) to generate RxJava friendly 
+async interfaces automatically. 
 
 ## Download
 
@@ -21,9 +43,38 @@ Snapshots of the development version are available in [Sonatype's `snapshots` re
 
  * Use same RxJava API in the client side
  * Improve RxJava GWT performance (emulate classes)
- * GWT tools (observe from EventBus, HasValueChangeHandler, ...)
+ * Make original RxJava project GWT compatible
  
+## Source code folders 
+
+ * `src/main/java` GWT specific code
+ * `src/main/super` GWT JDK emulations required by RxJava
+ * `src/main/modified` Required changes on original RxJava (https://github.com/ibaca/RxJava/tree/2.x-gwt)
+ 
+ The 'super' and 'modified' folders are both super-sources, but they are separated because the 'super' contains 
+ emulations that can be eventually merged into GWT and 'modified' contains RxJava changes that can be eventually
+ merged into RxJava project. Leaving this project with only GWT specific code and just a few super sources to 
+ fix scheduling incompatibilities and reasonable performance improvements.   
+
+## Profiling with d8
+
+Install V8 and create aliases for d8 and xxx-tick-processor.
+
+```
+mvn -Dd8 package
+cd target/d8/perf
+d8 -prof --log-timer-events perf.nocache.js
+tick-processor --source-map=../../gwt/deploy/perf/symbolMaps/<HASH>_sourceMap0.json v8.log
+```
+
+[Install V8 on Mac](https://gist.github.com/kevincennis)
+[Profiling GWT applications with v8 and d8](http://blog.daniel-kurka.de/2014/01/profiling-gwt-applications-with-v8-and.html)
+[Performance Tips for JavaScript in V8](http://www.html5rocks.com/en/tutorials/speed/v8/)
+
 ## Why I start this project?
+
+>This is an old story not useful to understand anything about the project, hehe but I like to remember why I started 
+it :bowtie:
 
 My primary goal to start this project was to have a shared (between client and server) type safe Promise 
 implementation. This promises most of the time are server request calls, and most of this request returns 
@@ -41,91 +92,24 @@ And can be used like:
 // simple: request one file and show
 filesService.files("/one.file").subscribe(resultBox::showFile);
 
-// advanced: request 10 files each time search box changes, auto canceling previous request and showing the results
-Observable<String> searchText = GwtObservable.fromHasValue(searchBox);
-Observable<List<String>> searchResult = Observable
-    .switchOnNext(searchText.map(matches -> filesService.files(matches).take(10).toList())
-    .share();  // uniform API for single/multi responses and pagination --^
+// advanced: request 10 files each time search box changes, canceling previous and showing the results
+Observable<String> searchText = RxUser.bindValueChange(searchBox);
+Observable<List<String>> searchResult = searchText
+    .switchMap(matches -> filesService
+        .files(matches).observeOn(Schedulers.compute())
+        .map(Tools::heavyWeightOperation).take(10).toList())
+    .share();
 searchResult.subscribe(resultBox::showFiles);    
-``` 
-So, beside the shared and composable reactive API, Observables unify single/collection and paginated responses, i.e.
-you don't need the common `getUser/getUsers` paired request and the `first/max` pagination params because you can just
-use a single `observeUsers(query).take(max)`. This may not fit all situations, but looks good anyway.
+```
+This is pretty awesome and powerful, as RxJava requires subscription and notify un-subscriptions makes request 
+composition easy and safer as you can clean up resources without an annoying API if the request is canceled before
+it end up. Also, if you have some heavy weight operation, you can process it progressively without locking up the 
+main loop (in the example above done using the `observeOn` operator), and finally reduce the result into a list to 
+show the final result in a `resultBox`. 
 
-**Note:** [AutoREST GWT](https://github.com/intendia-oss/autorest-gwt) implements 
+**Note:** [AutoREST GWT](https://github.com/intendia-oss/autorest) implements 
 the shareable JAX-RS interface using RxJava in the client side and [RxGWT](https://github.com/intendia-oss/rxgwt)
-exposes a lot of common tools like the 'GwtObservable.fromHasValue' in the code example.  
-
- 
-## Source code folders 
-
- * `src/main/java` GWT specific code
- * `src/main/super` GWT super source to made RxJava classes works
- * `src/main/replaced` Same as super but generated using regex expressions to replace incompatible expressions
-  
-## Expressions used in replaced code
-
-```groovy
-task gwtResources(type: Copy) {
-    from 'src/main/java';
-    into 'build/super'
-
-    include '**/*.java'
-    exclude '**/schedulers/**' // GWT has only one custom scheduler
-    exclude '**/RxThreadFactory.java' // uses Thread
-    exclude '**/OperatorObserveOn.java' // uses unsafe and references ImmediateScheduler and TrampolineScheduler
-    exclude '**/OnSubscribeCombineLatest.java' // uses BitSet
-    exclude '**/Blocking*.java' // GWT unsupported
-    exclude '**/BackpressureDrainManager.java' // Custom GWT version
-    exclude { details -> details.file.isFile() && !(
-                         details.file.text.contains('FieldUpdater.newUpdater') ||
-                         details.file.text.contains('Collections.synchronized') ||
-                         details.file.text.contains('ArrayDeque') ||
-                         details.file.text.contains('Thread.currentThread().interrupt') ||
-                         details.file.text.contains('Array.newInstance')) }
-
-    includeEmptyDirs = false
-
-    filter { line -> line
-            .replaceAll('AtomicIntegerFieldUpdater.newUpdater\\((.*?).class, \"(.*?)\"\\);',
-                'new rx.internal.util.GwtIntegerFieldUpdater<\$1>() {' +
-                ' @Override protected int getter(\$1 obj) { return obj.\$2; }' +
-                ' @Override protected void setter(\$1 obj, int update) { obj.\$2 = update; } };')
-
-            .replaceAll('AtomicLongFieldUpdater.newUpdater\\((.*?).class, \"(.*?)\"\\);',
-                'new rx.internal.util.GwtLongFieldUpdater<\$1>() {' +
-                ' @Override protected long getter(\$1 obj) { return obj.\$2; }' +
-                ' @Override protected void setter(\$1 obj, long update) { obj.\$2 = update; } };')
-
-            .replaceAll('AtomicReferenceFieldUpdater.newUpdater\\((.*?).class, (.*?).class, \"(.*?)\"\\);',
-                'new rx.internal.util.GwtReferenceFieldUpdater<\$1,\$2>() {' +
-                ' @Override protected \$2 getter(\$1 obj) { return obj.\$3; }' +
-                ' @Override protected void setter(\$1 obj, \$2 update) { obj.\$3 = update; } };')
-
-            .replaceAll('Collections.synchronized(.*?)\\((.*?)\\);', '\$2;')
-            .replaceAll('ArrayDeque(.*?)\\((.*?)\\)', 'LinkedList\$1()')
-            .replaceAll('ArrayDeque', 'LinkedList')
-            .replaceAll('Thread.currentThread\\(\\)\\.interrupt\\(\\);', '')
-            .replaceAll('Array.newInstance\\([^,]*, (.*?)\\)', 'new Object[\$1]')
-    }
-}
-```
-
-## Profiling with d8
-
-Install V8 and create aliases for d8 and xxx-tick-processor.
-
-```
-mvn -Dd8 package
-cd target/d8/perf
-d8 -prof --log-timer-events perf.nocache.js
-tick-processor --source-map=../../gwt/deploy/perf/symbolMaps/<HASH>_sourceMap0.json v8.log
-```
-
-[Install V8 on Mac](https://gist.github.com/kevincennis)
-[Profiling GWT applications with v8 and d8](http://blog.daniel-kurka.de/2014/01/profiling-gwt-applications-with-v8-and.html)
-[Performance Tips for JavaScript in V8](http://www.html5rocks.com/en/tutorials/speed/v8/)
-
+exposes a lot of common tools like the 'RxUser.bindValueChange' in the code example. 
 
 
  [mavenbadge]: https://maven-badges.herokuapp.com/maven-central/com.intendia.gwt/rxjava-gwt
