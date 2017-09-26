@@ -58,7 +58,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <gwt.version>2.8.1-i20170922</gwt.version>
+        <gwt.version>2.8.1-rx1</gwt.version>
         <rxjava.version>2.1.2</rxjava.version>
     </properties>
 
@@ -258,6 +258,10 @@
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
+        </repository>
+        <repository>
+            <id>rxjava-gwt-repo</id>
+            <url>https://raw.githubusercontent.com/intendia-oss/rxjava-gwt/mvn-repo/</url>
         </repository>
     </repositories>
 </project>
