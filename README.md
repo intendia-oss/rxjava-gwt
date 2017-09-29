@@ -123,8 +123,8 @@ the shareable JAX-RS interface using RxJava in the client side and [RxGWT](https
 exposes a lot of common tools like the 'RxUser.bindValueChange' in the code example. 
 
 
- [mavenbadge]: https://maven-badges.herokuapp.com/maven-central/com.intendia.gwt/rxjava-gwt
- [mavenbadge-svg]: https://maven-badges.herokuapp.com/maven-central/com.intendia.gwt/rxjava-gwt/badge.svg
+ [mavenbadge]: https://maven-badges.herokuapp.com/maven-central/com.intendia.gwt/rxjava2-gwt
+ [mavenbadge-svg]: https://maven-badges.herokuapp.com/maven-central/com.intendia.gwt/rxjava2-gwt/badge.svg
  [cibadge]: https://travis-ci.org/intendia-oss/rxjava-gwt
  [cibadge-svg]: https://travis-ci.org/intendia-oss/rxjava-gwt.svg
  [chatbadge]: https://gitter.im/intendia-oss/rxjava-gwt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
