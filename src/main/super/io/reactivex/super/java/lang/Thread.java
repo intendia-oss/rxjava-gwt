@@ -10,7 +10,7 @@ public class Thread {
 
     private static UncaughtExceptionHandler defaultUncaughtExceptionHandler = new UncaughtExceptionHandler() {
         @Override public void uncaughtException(Thread t, Throwable e) {
-            GWT.getUncaughtExceptionHandler().onUncaughtException(e);
+            GWT.reportUncaughtException(e);
         }
     };
 
