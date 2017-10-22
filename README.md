@@ -12,7 +12,7 @@ to adapt RxJava to the browser.
 **WARNING** GWT version uses JDT 3.11 which contains a [bug](https://bugs.eclipse.org/bugs/show_bug.cgi?id=521438) 
 that makes rxjava 2.x compilation super-slow. This has been fixed but should be integrated first in JDT and later on in
 the GWT compiler, in the mean time this repo includes a patched version of the last GWT stable version. To use this 
-patched version you need to add the next repository definition and use the GWT version `2.8.1-rx1`.
+patched version you need to add the next repository definition and use the GWT version `2.8.2-rx1`.
 ```
 <repository>
     <id>rxjava-gwt-repo</id>
