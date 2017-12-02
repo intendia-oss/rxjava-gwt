@@ -10537,6 +10537,9 @@ public class Observable<T> {
      * Returns an Observable that emits those items emitted by source Observable before a specified time runs
      * out.
      * <p>
+     * If time runs out before the {@code Observable} completes normally, the {@code onComplete} event will be
+     * signaled on the default {@code computation} {@link Scheduler}.
+     * <p>
      * <img width="640" height="305" src="https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/take.t.png" alt="">
      * <dl>
      *  <dt><b>Backpressure:</b></dt>
@@ -10560,6 +10563,9 @@ public class Observable<T> {
     /**
      * Returns an Observable that emits those items emitted by source Observable before a specified time (on a
      * specified Scheduler) runs out.
+     * <p>
+     * If time runs out before the {@code Observable} completes normally, the {@code onComplete} event will be
+     * signaled on the provided {@link Scheduler}.
      * <p>
      * <img width="640" height="305" src="https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/take.ts.png" alt="">
      * <dl>
@@ -11285,11 +11291,13 @@ public class Observable<T> {
      *             if {@code timeoutSelector} is null
      * @see <a href="http://reactivex.io/documentation/operators/timeout.html">ReactiveX operators documentation: Timeout</a>
      */
+    @SuppressWarnings("unchecked")
     public final <U, V> Observable<T> timeout(Func0<? extends Observable<U>> firstTimeoutSelector, Func1<? super T, ? extends Observable<V>> timeoutSelector, Observable<? extends T> other) {
         if (timeoutSelector == null) {
             throw new NullPointerException("timeoutSelector is null");
         }
-        return lift(new OperatorTimeoutWithSelector<T, U, V>(firstTimeoutSelector, timeoutSelector, other));
+        return unsafeCreate(new OnSubscribeTimeoutSelectorWithFallback<T, U, V>(this,
+                firstTimeoutSelector != null ? defer((Func0<Observable<U>>)firstTimeoutSelector) : null, timeoutSelector, other));
     }
 
     /**
@@ -11444,7 +11452,7 @@ public class Observable<T> {
      * @see <a href="http://reactivex.io/documentation/operators/timeout.html">ReactiveX operators documentation: Timeout</a>
      */
     public final Observable<T> timeout(long timeout, TimeUnit timeUnit, Observable<? extends T> other, Scheduler scheduler) {
-        return lift(new OperatorTimeout<T>(timeout, timeUnit, other, scheduler));
+        return unsafeCreate(new OnSubscribeTimeoutTimedWithFallback<T>(this, timeout, timeUnit, scheduler, other));
     }
 
     /**

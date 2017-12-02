@@ -706,5 +706,6 @@ public class TestSubscriber<T> extends Subscriber<T> {
             assertItem(expectedRestValues[i], i + 1);
         }
         values.clear();
+        valueCount = 0;
     }
 }
