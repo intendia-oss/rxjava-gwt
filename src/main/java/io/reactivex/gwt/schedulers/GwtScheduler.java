@@ -1,51 +1,42 @@
 package io.reactivex.gwt.schedulers;
 
-import static java.util.Objects.requireNonNull;
-
-import com.google.gwt.core.client.Scheduler;
+import elemental2.dom.DomGlobal;
+import elemental2.promise.Promise;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.disposables.Disposables;
 import io.reactivex.exceptions.OnErrorNotImplementedException;
 import io.reactivex.plugins.RxJavaPlugins;
 import java.util.concurrent.TimeUnit;
 
 public class GwtScheduler extends io.reactivex.Scheduler {
-    protected final Scheduler executor;
     private final boolean incremental;
 
-    public GwtScheduler(Scheduler executor, boolean incremental) {
-        this.executor = requireNonNull(executor, "executor required");
+    public GwtScheduler(boolean incremental) {
         this.incremental = incremental;
     }
 
     @Override
     public Worker createWorker() {
-        return new GwtWorker(executor, incremental);
+        return new GwtWorker(incremental);
     }
 
     static class GwtWorker extends Worker {
-        private Scheduler executor;
+        private boolean disposed = false;
         private final boolean incremental;
 
-        GwtWorker(Scheduler executor, boolean incremental) {
-            this.executor = requireNonNull(executor, "executor required");
+        GwtWorker(boolean incremental) {
             this.incremental = incremental;
         }
 
         @Override
         public Disposable schedule(Runnable action, long delayTime, TimeUnit unit) {
-            if (executor == null) {
-                return Disposables.empty();
-            }
-
             action = RxJavaPlugins.onSchedule(action);
 
             ScheduledAction scheduledAction = new ScheduledAction(action);
 
             if (incremental && (delayTime <= 0 || unit == null)) {
-                executor.scheduleIncremental(scheduledAction);
+                Promise.resolve(0).then(o -> { scheduledAction.run(); return null; });
             } else {
-                executor.scheduleFixedDelay(scheduledAction, (int) unit.toMillis(delayTime));
+                DomGlobal.setTimeout(args -> scheduledAction.run(), (int) unit.toMillis(delayTime));
             }
 
             return scheduledAction;
@@ -53,16 +44,16 @@ public class GwtScheduler extends io.reactivex.Scheduler {
 
         @Override
         public void dispose() {
-            executor = null;
+            disposed = true;
         }
 
         @Override
         public boolean isDisposed() {
-            return executor == null;
+            return disposed;
         }
     }
 
-    private static class ScheduledAction implements Scheduler.RepeatingCommand, Disposable {
+    private static class ScheduledAction implements Runnable, Disposable {
         private Runnable action;
 
         ScheduledAction(Runnable action) {
@@ -70,9 +61,9 @@ public class GwtScheduler extends io.reactivex.Scheduler {
         }
 
         @Override
-        public boolean execute() {
+        public void run() {
             if (action == null) {
-                return false;
+                return; // disposed
             }
             try {
                 action.run();
@@ -85,7 +76,6 @@ public class GwtScheduler extends io.reactivex.Scheduler {
             } finally {
                 dispose();
             }
-            return false;
         }
 
         void signalError(Throwable ie) {

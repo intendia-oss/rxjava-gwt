@@ -1,6 +1,9 @@
 package java.lang;
 
-import com.google.gwt.core.client.GWT;
+import elemental2.dom.DomGlobal;
+import elemental2.promise.Promise;
+import jsinterop.annotations.JsFunction;
+import jsinterop.base.Js;
 
 public class Thread {
     public final static int MIN_PRIORITY = 1;
@@ -8,10 +11,9 @@ public class Thread {
     public final static int MAX_PRIORITY = 10;
     private static final Thread EVENT_LOOP = new Thread(true);
 
-    private static UncaughtExceptionHandler defaultUncaughtExceptionHandler = new UncaughtExceptionHandler() {
-        @Override public void uncaughtException(Thread t, Throwable e) {
-            GWT.reportUncaughtException(e);
-        }
+    @FunctionalInterface @JsFunction interface ReThrow { void run() throws Throwable; }
+    private static Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler = (t, e) -> {
+        Promise.resolve(0).then(Js.uncheckedCast(((ReThrow) () -> { throw e; })));
     };
 
     private UncaughtExceptionHandler uncaughtExceptionHandler;
