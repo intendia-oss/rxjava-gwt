@@ -3,7 +3,7 @@
     <groupId>com.intendia.gwt</groupId>
     <artifactId>rxjava2-gwt</artifactId>
     <packaging>gwt-lib</packaging>
-    <version>HEAD-SNAPSHOT</version>
+    <version>2.2.0-gwt1</version>
 
     <name>RxJava GWT</name>
     <description>RxJava GWT compatibility library</description>
@@ -28,7 +28,7 @@
         <connection>scm:git:https://github.com/intendia-oss/rxjava-gwt.git</connection>
         <developerConnection>scm:git:git@github.com:intendia-oss/rxjava-gwt.git</developerConnection>
         <url>https://github.com/intendia-oss/rxjava-gwt</url>
-        <tag>HEAD</tag>
+        <tag>2.2.0-gwt1</tag>
     </scm>
 
     <issueManagement>
