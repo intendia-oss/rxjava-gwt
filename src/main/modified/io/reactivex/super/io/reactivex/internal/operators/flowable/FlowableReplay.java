@@ -57,20 +57,20 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
     public static <U, R> Flowable<R> multicastSelector(
             final Callable<? extends ConnectableFlowable<U>> connectableFactory,
             final Function<? super Flowable<U>, ? extends Publisher<R>> selector) {
-        return Flowable.unsafeCreate(new MultiCastPublisher<R, U>(connectableFactory, selector));
+        return new MulticastFlowable<R, U>(connectableFactory, selector);
     }
 
     /**
      * Child Subscribers will observe the events of the ConnectableObservable on the
      * specified scheduler.
      * @param <T> the value type
-     * @param co the ConnectableFlowable to wrap
+     * @param cf the ConnectableFlowable to wrap
      * @param scheduler the target scheduler
      * @return the new ConnectableObservable instance
      */
-    public static <T> ConnectableFlowable<T> observeOn(final ConnectableFlowable<T> co, final Scheduler scheduler) {
-        final Flowable<T> observable = co.observeOn(scheduler);
-        return RxJavaPlugins.onAssembly(new ConnectableFlowableReplay<T>(co, observable));
+    public static <T> ConnectableFlowable<T> observeOn(final ConnectableFlowable<T> cf, final Scheduler scheduler) {
+        final Flowable<T> observable = cf.observeOn(scheduler);
+        return RxJavaPlugins.onAssembly(new ConnectableFlowableReplay<T>(cf, observable));
     }
 
     /**
@@ -527,36 +527,16 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
         public void request(long n) {
             // ignore negative requests
             if (SubscriptionHelper.validate(n)) {
-                // In general, RxJava doesn't prevent concurrent requests (with each other or with
-                // a cancel) so we need a CAS-loop, but we need to handle
-                // request overflow and cancelled/not requested state as well.
-                for (;;) {
-                    // get the current request amount
-                    long r = get();
-                    // if child called cancel() do nothing
-                    if (r == CANCELLED) {
-                        return;
-                    }
-                    // ignore zero requests except any first that sets in zero
-                    if (r >= 0L && n == 0) {
-                        return;
-                    }
-                    // otherwise, increase the request count
-                    long u = BackpressureHelper.addCap(r, n);
-
-                    // try setting the new request value
-                    if (compareAndSet(r, u)) {
-                        // increment the total request counter
-                        BackpressureHelper.add(totalRequested, n);
-                        // if successful, notify the parent dispatcher this child can receive more
-                        // elements
-                        parent.manageRequests();
-
-                        parent.buffer.replay(this);
-                        return;
-                    }
-                    // otherwise, someone else changed the state (perhaps a concurrent
-                    // request or cancellation) so retry
+                // add to the current requested and cap it at MAX_VALUE
+                // except when there was a concurrent cancellation
+                if (BackpressureHelper.addCancel(this, n) != CANCELLED) {
+                    // increment the total request counter
+                    BackpressureHelper.add(totalRequested, n);
+                    // if successful, notify the parent dispatcher this child can receive more
+                    // elements
+                    parent.manageRequests();
+                    // try replaying any cached content
+                    parent.buffer.replay(this);
                 }
             }
         }
@@ -827,6 +807,15 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
             truncateFinal();
         }
 
+        final void trimHead() {
+            Node head = get();
+            if (head.value != null) {
+                Node n = new Node(null, 0L);
+                n.lazySet(head.get());
+                set(n);
+            }
+        }
+
         @Override
         public final void replay(InnerSubscription<T> output) {
             synchronized (output) {
@@ -930,7 +919,7 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
          * based on its properties (i.e., truncate but the very last node).
          */
         void truncateFinal() {
-
+            trimHead();
         }
         /* test */ final  void collect(Collection<? super T> output) {
             Node n = getHead();
@@ -1101,20 +1090,20 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
         }
     }
 
-    static final class MultiCastPublisher<R, U> implements Publisher<R> {
+    static final class MulticastFlowable<R, U> extends Flowable<R> {
         private final Callable<? extends ConnectableFlowable<U>> connectableFactory;
         private final Function<? super Flowable<U>, ? extends Publisher<R>> selector;
 
-        MultiCastPublisher(Callable<? extends ConnectableFlowable<U>> connectableFactory, Function<? super Flowable<U>, ? extends Publisher<R>> selector) {
+        MulticastFlowable(Callable<? extends ConnectableFlowable<U>> connectableFactory, Function<? super Flowable<U>, ? extends Publisher<R>> selector) {
             this.connectableFactory = connectableFactory;
             this.selector = selector;
         }
 
         @Override
-        public void subscribe(Subscriber<? super R> child) {
-            ConnectableFlowable<U> co;
+        protected void subscribeActual(Subscriber<? super R> child) {
+            ConnectableFlowable<U> cf;
             try {
-                co = ObjectHelper.requireNonNull(connectableFactory.call(), "The connectableFactory returned null");
+                cf = ObjectHelper.requireNonNull(connectableFactory.call(), "The connectableFactory returned null");
             } catch (Throwable e) {
                 Exceptions.throwIfFatal(e);
                 EmptySubscription.error(e, child);
@@ -1123,7 +1112,7 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
 
             Publisher<R> observable;
             try {
-                observable = ObjectHelper.requireNonNull(selector.apply(co), "The selector returned a null Publisher");
+                observable = ObjectHelper.requireNonNull(selector.apply(cf), "The selector returned a null Publisher");
             } catch (Throwable e) {
                 Exceptions.throwIfFatal(e);
                 EmptySubscription.error(e, child);
@@ -1134,7 +1123,7 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
 
             observable.subscribe(srw);
 
-            co.connect(new DisposableConsumer(srw));
+            cf.connect(new DisposableConsumer(srw));
         }
 
         final class DisposableConsumer implements Consumer<Disposable> {
@@ -1152,17 +1141,17 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
     }
 
     static final class ConnectableFlowableReplay<T> extends ConnectableFlowable<T> {
-        private final ConnectableFlowable<T> co;
+        private final ConnectableFlowable<T> cf;
         private final Flowable<T> observable;
 
-        ConnectableFlowableReplay(ConnectableFlowable<T> co, Flowable<T> observable) {
-            this.co = co;
+        ConnectableFlowableReplay(ConnectableFlowable<T> cf, Flowable<T> observable) {
+            this.cf = cf;
             this.observable = observable;
         }
 
         @Override
         public void connect(Consumer<? super Disposable> connection) {
-            co.connect(connection);
+            cf.connect(connection);
         }
 
         @Override
@@ -1227,7 +1216,8 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
                         buf = bufferFactory.call();
                     } catch (Throwable ex) {
                         Exceptions.throwIfFatal(ex);
-                        throw ExceptionHelper.wrapOrThrow(ex);
+                        EmptySubscription.error(ex, child);
+                        return;
                     }
                     // create a new subscriber to source
                     ReplaySubscriber<T> u = new ReplaySubscriber<T>(buf);

@@ -15,21 +15,22 @@
  */
 package io.reactivex.internal.schedulers;
 
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
+
 import io.reactivex.Scheduler;
 import io.reactivex.annotations.GwtIncompatible;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.*;
 import io.reactivex.internal.disposables.*;
-
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
+import io.reactivex.internal.functions.ObjectHelper;
 
 /**
  * Holds a fixed pool of worker threads and assigns them
  * to requested Scheduler.Workers in a round-robin fashion.
  */
 @GwtIncompatible("java.util.concurrent")
-public final class ComputationScheduler extends Scheduler {
+public final class ComputationScheduler extends Scheduler implements SchedulerMultiWorkerSupport {
     /** This will indicate no pool is active. */
     static final FixedSchedulerPool NONE;
     /** Manages a fixed number of workers. */
@@ -69,7 +70,7 @@ public final class ComputationScheduler extends Scheduler {
         return paramThreads <= 0 || paramThreads > cpuCount ? cpuCount : paramThreads;
     }
 
-    static final class FixedSchedulerPool {
+    static final class FixedSchedulerPool implements SchedulerMultiWorkerSupport {
         final int cores;
 
         final PoolWorker[] eventLoops;
@@ -96,6 +97,25 @@ public final class ComputationScheduler extends Scheduler {
         public void shutdown() {
             for (PoolWorker w : eventLoops) {
                 w.dispose();
+            }
+        }
+
+        @Override
+        public void createWorkers(int number, WorkerCallback callback) {
+            int c = cores;
+            if (c == 0) {
+                for (int i = 0; i < number; i++) {
+                    callback.onWorker(i, SHUTDOWN_WORKER);
+                }
+            } else {
+                int index = (int)n % c;
+                for (int i = 0; i < number; i++) {
+                    callback.onWorker(i, new EventLoopWorker(eventLoops[index]));
+                    if (++index == c) {
+                        index = 0;
+                    }
+                }
+                n = index;
             }
         }
     }
@@ -125,6 +145,12 @@ public final class ComputationScheduler extends Scheduler {
     @Override
     public Worker createWorker() {
         return new EventLoopWorker(pool.get().getEventLoop());
+    }
+
+    @Override
+    public void createWorkers(int number, WorkerCallback callback) {
+        ObjectHelper.verifyPositive(number, "number > 0 required");
+        pool.get().createWorkers(number, callback);
     }
 
     @NonNull

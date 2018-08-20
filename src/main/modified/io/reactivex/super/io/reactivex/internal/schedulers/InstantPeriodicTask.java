@@ -52,16 +52,14 @@ final class InstantPeriodicTask implements Callable<Void>, Disposable {
 
     @Override
     public Void call() throws Exception {
+        runner = Thread.currentThread();
         try {
-            runner = Thread.currentThread();
-            try {
-                task.run();
-                setRest(executor.submit(this));
-            } catch (Throwable ex) {
-                RxJavaPlugins.onError(ex);
-            }
-        } finally {
+            task.run();
+            setRest(executor.submit(this));
             runner = null;
+        } catch (Throwable ex) {
+            runner = null;
+            RxJavaPlugins.onError(ex);
         }
         return null;
     }
@@ -88,6 +86,7 @@ final class InstantPeriodicTask implements Callable<Void>, Disposable {
             Future<?> current = first.get();
             if (current == CANCELLED) {
                 f.cancel(runner != Thread.currentThread());
+                return;
             }
             if (first.compareAndSet(current, f)) {
                 return;
@@ -100,6 +99,7 @@ final class InstantPeriodicTask implements Callable<Void>, Disposable {
             Future<?> current = rest.get();
             if (current == CANCELLED) {
                 f.cancel(runner != Thread.currentThread());
+                return;
             }
             if (rest.compareAndSet(current, f)) {
                 return;

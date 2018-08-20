@@ -37,6 +37,25 @@ public final class TestScheduler extends Scheduler {
     // Storing time in nanoseconds internally.
     volatile long time;
 
+    /**
+     * Creates a new TestScheduler with initial virtual time of zero.
+     */
+    public TestScheduler() {
+        // No-op.
+    }
+
+    /**
+     * Creates a new TestScheduler with the specified initial virtual time.
+     *
+     * @param delayTime
+     *          the point in time to move the Scheduler's clock to
+     * @param unit
+     *          the units of time that {@code delayTime} is expressed in
+     */
+    public TestScheduler(long delayTime, TimeUnit unit) {
+        time = unit.toNanos(delayTime);
+    }
+
     static final class TimedRunnable implements Comparable<TimedRunnable> {
 
         final long time;
@@ -104,14 +123,14 @@ public final class TestScheduler extends Scheduler {
     }
 
     private void triggerActions(long targetTimeInNanoseconds) {
-        while (!queue.isEmpty()) {
+        for (;;) {
             TimedRunnable current = queue.peek();
-            if (current.time > targetTimeInNanoseconds) {
+            if (current == null || current.time > targetTimeInNanoseconds) {
                 break;
             }
             // if scheduled time is 0 (immediate) use current virtual time
             time = current.time == 0 ? time : current.time;
-            queue.remove();
+            queue.remove(current);
 
             // Only execute if not unsubscribed
             if (!current.scheduler.disposed) {

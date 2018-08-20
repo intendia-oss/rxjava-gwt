@@ -517,9 +517,7 @@ extends Flowable<R> {
 
         @Override
         public void onSubscribe(Subscription s) {
-            if (SubscriptionHelper.setOnce(this, s)) {
-                s.request(prefetch);
-            }
+            SubscriptionHelper.setOnce(this, s, prefetch);
         }
 
         @Override

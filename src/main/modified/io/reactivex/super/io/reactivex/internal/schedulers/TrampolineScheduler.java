@@ -51,7 +51,7 @@ public final class TrampolineScheduler extends Scheduler {
     @NonNull
     @Override
     public Disposable scheduleDirect(@NonNull Runnable run) {
-        run.run();
+        RxJavaPlugins.onSchedule(run).run();
         return EmptyDisposable.INSTANCE;
     }
 
@@ -59,7 +59,7 @@ public final class TrampolineScheduler extends Scheduler {
     @Override
     public Disposable scheduleDirect(@NonNull Runnable run, long delay, TimeUnit unit) {
         if (delay > 0) throw new UnsupportedOperationException();
-        run.run();
+        RxJavaPlugins.onSchedule(run).run();
         return EmptyDisposable.INSTANCE;
     }
 
@@ -187,14 +187,12 @@ public final class TrampolineScheduler extends Scheduler {
                 long t = worker.now(TimeUnit.MILLISECONDS);
                 if (execTime > t) {
                     long delay = execTime - t;
-                    if (delay > 0) {
-                        try {
-                            Thread.sleep(delay);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            RxJavaPlugins.onError(e);
-                            return;
-                        }
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        RxJavaPlugins.onError(e);
+                        return;
                     }
                 }
 

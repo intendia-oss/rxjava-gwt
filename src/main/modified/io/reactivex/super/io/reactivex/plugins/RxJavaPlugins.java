@@ -86,6 +86,7 @@ public final class RxJavaPlugins {
     @Nullable
     static volatile Function<? super Single, ? extends Single> onSingleAssembly;
 
+    @Nullable
     static volatile Function<? super Completable, ? extends Completable> onCompletableAssembly;
 
     @SuppressWarnings("rawtypes")
@@ -337,7 +338,24 @@ public final class RxJavaPlugins {
 
     /**
      * Called when an undeliverable error occurs.
+     * <p>
+     * Undeliverable errors are those {@code Observer.onError()} invocations that are not allowed to happen on
+     * the given consumer type ({@code Observer}, {@code Subscriber}, etc.) due to protocol restrictions
+     * because the consumer has either disposed/cancelled its {@code Disposable}/{@code Subscription} or
+     * has already terminated with an {@code onError()} or {@code onComplete()} signal.
+     * <p>
+     * By default, this global error handler prints the stacktrace via {@link Throwable#printStackTrace()}
+     * and calls {@link java.lang.Thread.UncaughtExceptionHandler#uncaughtException(Thread, Throwable)}
+     * on the current thread.
+     * <p>
+     * Note that on some platforms, the platform runtime terminates the current application with an error if such
+     * uncaught exceptions happen. In this case, it is recommended the application installs a global error
+     * handler via the {@link #setErrorHandler(Consumer)} plugin method.
+     *
      * @param error the error to report
+     * @see #getErrorHandler()
+     * @see #setErrorHandler(Consumer)
+     * @see <a href="https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling">Error handling Wiki</a>
      */
     public static void onError(@NonNull Throwable error) {
         Consumer<? super Throwable> f = errorHandler;
@@ -446,6 +464,8 @@ public final class RxJavaPlugins {
      */
     @NonNull
     public static Runnable onSchedule(@NonNull Runnable run) {
+        ObjectHelper.requireNonNull(run, "run is null");
+
         Function<? super Runnable, ? extends Runnable> f = onScheduleHandler;
         if (f == null) {
             return run;
@@ -1084,11 +1104,10 @@ public final class RxJavaPlugins {
 
     /**
      * Sets the specific hook function.
-     * <p>History: 2.0.6 - experimental
+     * <p>History: 2.0.6 - experimental; 2.1 - beta
      * @param handler the hook function to set, null allowed
-     * @since 2.1 - beta
+     * @since 2.2
      */
-    @Beta
     @SuppressWarnings("rawtypes")
     public static void setOnParallelAssembly(@Nullable Function<? super ParallelFlowable, ? extends ParallelFlowable> handler) {
         if (lockdown) {
@@ -1099,11 +1118,10 @@ public final class RxJavaPlugins {
 
     /**
      * Returns the current hook function.
-     * <p>History: 2.0.6 - experimental
+     * <p>History: 2.0.6 - experimental; 2.1 - beta
      * @return the hook function, may be null
-     * @since 2.1 - beta
+     * @since 2.2
      */
-    @Beta
     @SuppressWarnings("rawtypes")
     @Nullable
     public static Function<? super ParallelFlowable, ? extends ParallelFlowable> getOnParallelAssembly() {
@@ -1112,13 +1130,12 @@ public final class RxJavaPlugins {
 
     /**
      * Calls the associated hook function.
-     * <p>History: 2.0.6 - experimental
+     * <p>History: 2.0.6 - experimental; 2.1 - beta
      * @param <T> the value type of the source
      * @param source the hook's input value
      * @return the value returned by the hook
-     * @since 2.1 - beta
+     * @since 2.2
      */
-    @Beta
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @NonNull
     public static <T> ParallelFlowable<T> onAssembly(@NonNull ParallelFlowable<T> source) {
