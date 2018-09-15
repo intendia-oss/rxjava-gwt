@@ -48,7 +48,6 @@ public final class ObservableCreate<T> extends Observable<T> {
     extends AtomicReference<Disposable>
     implements ObservableEmitter<T>, Disposable {
 
-
         private static final long serialVersionUID = -3434801548987643227L;
 
         final Observer<? super T> observer;
@@ -266,8 +265,8 @@ public final class ObservableCreate<T> extends Observable<T> {
         }
 
         @Override
-        public void setDisposable(Disposable s) {
-            emitter.setDisposable(s);
+        public void setDisposable(Disposable d) {
+            emitter.setDisposable(d);
         }
 
         @Override

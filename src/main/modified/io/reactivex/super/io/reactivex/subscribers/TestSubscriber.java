@@ -43,13 +43,13 @@ public class TestSubscriber<T>
 extends BaseTestConsumer<T, TestSubscriber<T>>
 implements FlowableSubscriber<T>, Subscription, Disposable {
     /** The actual subscriber to forward events to. */
-    private final Subscriber<? super T> actual;
+    private final Subscriber<? super T> downstream;
 
     /** Makes sure the incoming Subscriptions get cancelled immediately. */
     private volatile boolean cancelled;
 
     /** Holds the current subscription if any. */
-    private final AtomicReference<Subscription> subscription;
+    private final AtomicReference<Subscription> upstream;
 
     /** Holds the requested amount until a subscription arrives. */
     private final AtomicLong missedRequested;
@@ -104,10 +104,10 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
 
     /**
      * Constructs a forwarding TestSubscriber but leaves the requesting to the wrapped subscriber.
-     * @param actual the actual Subscriber to forward events to
+     * @param downstream the actual Subscriber to forward events to
      */
-    public TestSubscriber(Subscriber<? super T> actual) {
-        this(actual, Long.MAX_VALUE);
+    public TestSubscriber(Subscriber<? super T> downstream) {
+        this(downstream, Long.MAX_VALUE);
     }
 
     /**
@@ -122,8 +122,8 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
         if (initialRequest < 0) {
             throw new IllegalArgumentException("Negative initial request not allowed");
         }
-        this.actual = actual;
-        this.subscription = new AtomicReference<Subscription>();
+        this.downstream = actual;
+        this.upstream = new AtomicReference<Subscription>();
         this.missedRequested = new AtomicLong(initialRequest);
     }
 
@@ -136,9 +136,9 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
             errors.add(new NullPointerException("onSubscribe received a null Subscription"));
             return;
         }
-        if (!subscription.compareAndSet(null, s)) {
+        if (!upstream.compareAndSet(null, s)) {
             s.cancel();
-            if (subscription.get() != SubscriptionHelper.CANCELLED) {
+            if (upstream.get() != SubscriptionHelper.CANCELLED) {
                 errors.add(new IllegalStateException("onSubscribe received multiple subscriptions: " + s));
             }
             return;
@@ -169,8 +169,7 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
             }
         }
 
-
-        actual.onSubscribe(s);
+        downstream.onSubscribe(s);
 
         long mr = missedRequested.getAndSet(0L);
         if (mr != 0L) {
@@ -191,7 +190,7 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
     public void onNext(T t) {
         if (!checkSubscriptionOnce) {
             checkSubscriptionOnce = true;
-            if (subscription.get() == null) {
+            if (upstream.get() == null) {
                 errors.add(new IllegalStateException("onSubscribe not called in proper order"));
             }
         }
@@ -216,14 +215,14 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
             errors.add(new NullPointerException("onNext received a null value"));
         }
 
-        actual.onNext(t);
+        downstream.onNext(t);
     }
 
     @Override
     public void onError(Throwable t) {
         if (!checkSubscriptionOnce) {
             checkSubscriptionOnce = true;
-            if (subscription.get() == null) {
+            if (upstream.get() == null) {
                 errors.add(new NullPointerException("onSubscribe not called in proper order"));
             }
         }
@@ -235,7 +234,7 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
                 errors.add(new IllegalStateException("onError received a null Throwable"));
             }
 
-            actual.onError(t);
+            downstream.onError(t);
         } finally {
             done.countDown();
         }
@@ -245,7 +244,7 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
     public void onComplete() {
         if (!checkSubscriptionOnce) {
             checkSubscriptionOnce = true;
-            if (subscription.get() == null) {
+            if (upstream.get() == null) {
                 errors.add(new IllegalStateException("onSubscribe not called in proper order"));
             }
         }
@@ -253,7 +252,7 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
             lastThread = Thread.currentThread();
             completions++;
 
-            actual.onComplete();
+            downstream.onComplete();
         } finally {
             done.countDown();
         }
@@ -261,14 +260,14 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
 
     @Override
     public final void request(long n) {
-        SubscriptionHelper.deferredRequest(subscription, missedRequested, n);
+        SubscriptionHelper.deferredRequest(upstream, missedRequested, n);
     }
 
     @Override
     public final void cancel() {
         if (!cancelled) {
             cancelled = true;
-            SubscriptionHelper.cancel(subscription);
+            SubscriptionHelper.cancel(upstream);
         }
     }
 
@@ -297,7 +296,7 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
      * @return true if this TestSubscriber received a subscription
      */
     public final boolean hasSubscription() {
-        return subscription.get() != null;
+        return upstream.get() != null;
     }
 
     // assertion methods
@@ -308,7 +307,7 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
      */
     @Override
     public final TestSubscriber<T> assertSubscribed() {
-        if (subscription.get() == null) {
+        if (upstream.get() == null) {
             throw fail("Not subscribed!");
         }
         return this;
@@ -320,7 +319,7 @@ implements FlowableSubscriber<T>, Subscription, Disposable {
      */
     @Override
     public final TestSubscriber<T> assertNotSubscribed() {
-        if (subscription.get() != null) {
+        if (upstream.get() != null) {
             throw fail("Subscribed!");
         } else
         if (!errors.isEmpty()) {

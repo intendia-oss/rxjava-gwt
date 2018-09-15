@@ -98,6 +98,31 @@ public final class SchedulerPoolFactory {
         start();
     }
 
+    static final class PurgeProperties {
+
+        boolean purgeEnable;
+
+        int purgePeriod;
+
+        void load(Properties properties) {
+            if (properties.containsKey(PURGE_ENABLED_KEY)) {
+                purgeEnable = Boolean.parseBoolean(properties.getProperty(PURGE_ENABLED_KEY));
+            } else {
+                purgeEnable = true;
+            }
+
+            if (purgeEnable && properties.containsKey(PURGE_PERIOD_SECONDS_KEY)) {
+                try {
+                    purgePeriod = Integer.parseInt(properties.getProperty(PURGE_PERIOD_SECONDS_KEY));
+                } catch (NumberFormatException ex) {
+                    purgePeriod = 1;
+                }
+            } else {
+                purgePeriod = 1;
+            }
+        }
+    }
+
     /**
      * Creates a ScheduledExecutorService with the given factory.
      * @param factory the thread factory
