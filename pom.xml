@@ -55,7 +55,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <gwt.version>2.8.2-rx1</gwt.version>
-        <rxjava.version>2.2.0</rxjava.version>
+        <rxjava.version>2.2.2</rxjava.version>
     </properties>
 
     <dependencies>
