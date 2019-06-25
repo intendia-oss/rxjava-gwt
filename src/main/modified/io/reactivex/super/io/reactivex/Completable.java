@@ -26,7 +26,7 @@ import io.reactivex.internal.observers.*;
 import io.reactivex.internal.operators.completable.*;
 import io.reactivex.internal.operators.maybe.*;
 import io.reactivex.internal.operators.mixed.*;
-import io.reactivex.internal.operators.single.SingleDelayWithCompletable;
+import io.reactivex.internal.operators.single.*;
 import io.reactivex.internal.util.ExceptionHelper;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.plugins.RxJavaPlugins;
@@ -118,6 +118,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if sources is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable ambArray(final CompletableSource... sources) {
         ObjectHelper.requireNonNull(sources, "sources is null");
@@ -146,6 +147,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if sources is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable amb(final Iterable<? extends CompletableSource> sources) {
         ObjectHelper.requireNonNull(sources, "sources is null");
@@ -164,6 +166,7 @@ public abstract class Completable implements CompletableSource {
      * @return a Completable instance that completes immediately
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable complete() {
         return RxJavaPlugins.onAssembly(CompletableEmpty.INSTANCE);
@@ -182,6 +185,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if sources is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable concatArray(CompletableSource... sources) {
         ObjectHelper.requireNonNull(sources, "sources is null");
@@ -207,6 +211,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if sources is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable concat(Iterable<? extends CompletableSource> sources) {
         ObjectHelper.requireNonNull(sources, "sources is null");
@@ -253,6 +258,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if sources is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     @BackpressureSupport(BackpressureKind.FULL)
     public static Completable concat(Publisher<? extends CompletableSource> sources, int prefetch) {
@@ -297,6 +303,7 @@ public abstract class Completable implements CompletableSource {
      * @see Cancellable
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable create(CompletableOnSubscribe source) {
         ObjectHelper.requireNonNull(source, "source is null");
@@ -319,6 +326,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if source is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable unsafeCreate(CompletableSource source) {
         ObjectHelper.requireNonNull(source, "source is null");
@@ -340,6 +348,7 @@ public abstract class Completable implements CompletableSource {
      * @return the Completable instance
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable defer(final Callable<? extends CompletableSource> completableSupplier) {
         ObjectHelper.requireNonNull(completableSupplier, "completableSupplier");
@@ -363,6 +372,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if errorSupplier is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable error(final Callable<? extends Throwable> errorSupplier) {
         ObjectHelper.requireNonNull(errorSupplier, "errorSupplier is null");
@@ -382,6 +392,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if error is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable error(final Throwable error) {
         ObjectHelper.requireNonNull(error, "error is null");
@@ -409,6 +420,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if run is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable fromAction(final Action run) {
         ObjectHelper.requireNonNull(run, "run is null");
@@ -435,6 +447,7 @@ public abstract class Completable implements CompletableSource {
      * @return the new Completable instance
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable fromCallable(final Callable<?> callable) {
         ObjectHelper.requireNonNull(callable, "callable is null");
@@ -455,6 +468,7 @@ public abstract class Completable implements CompletableSource {
      * @return the new Completable instance
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable fromFuture(final Future<?> future) {
         ObjectHelper.requireNonNull(future, "future is null");
@@ -479,6 +493,7 @@ public abstract class Completable implements CompletableSource {
      * @since 2.2
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static <T> Completable fromMaybe(final MaybeSource<T> maybe) {
         ObjectHelper.requireNonNull(maybe, "maybe is null");
@@ -493,12 +508,20 @@ public abstract class Completable implements CompletableSource {
      * <dl>
      *  <dt><b>Scheduler:</b></dt>
      *  <dd>{@code fromRunnable} does not operate by default on a particular {@link Scheduler}.</dd>
+     *  <dt><b>Error handling:</b></dt>
+     *  <dd> If the {@link Runnable} throws an exception, the respective {@link Throwable} is
+     *  delivered to the downstream via {@link CompletableObserver#onError(Throwable)},
+     *  except when the downstream has disposed this {@code Completable} source.
+     *  In this latter case, the {@code Throwable} is delivered to the global error handler via
+     *  {@link RxJavaPlugins#onError(Throwable)} as an {@link io.reactivex.exceptions.UndeliverableException UndeliverableException}.
+     *  </dd>
      * </dl>
      * @param run the runnable to run for each subscriber
      * @return the new Completable instance
      * @throws NullPointerException if run is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable fromRunnable(final Runnable run) {
         ObjectHelper.requireNonNull(run, "run is null");
@@ -520,6 +543,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if flowable is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static <T> Completable fromObservable(final ObservableSource<T> observable) {
         ObjectHelper.requireNonNull(observable, "observable is null");
@@ -533,7 +557,7 @@ public abstract class Completable implements CompletableSource {
      * <img width="640" height="422" src="https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/Completable.fromPublisher.png" alt="">
      * <p>
      * The {@link Publisher} must follow the
-     * <a href="https://github.com/reactive-streams/reactive-streams-jvm#reactive-streams">Reactive-Streams specification</a>.
+     * <a href="https://github.com/reactive-streams/reactive-streams-jvm#reactive-streams">Reactive Streams specification</a>.
      * Violating the specification may result in undefined behavior.
      * <p>
      * If possible, use {@link #create(CompletableOnSubscribe)} to create a
@@ -556,6 +580,7 @@ public abstract class Completable implements CompletableSource {
      * @see #create(CompletableOnSubscribe)
      */
     @CheckReturnValue
+    @NonNull
     @BackpressureSupport(BackpressureKind.UNBOUNDED_IN)
     @SchedulerSupport(SchedulerSupport.NONE)
     public static <T> Completable fromPublisher(final Publisher<T> publisher) {
@@ -578,6 +603,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if single is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static <T> Completable fromSingle(final SingleSource<T> single) {
         ObjectHelper.requireNonNull(single, "single is null");
@@ -612,6 +638,7 @@ public abstract class Completable implements CompletableSource {
      * @see #mergeArrayDelayError(CompletableSource...)
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable mergeArray(CompletableSource... sources) {
         ObjectHelper.requireNonNull(sources, "sources is null");
@@ -652,6 +679,7 @@ public abstract class Completable implements CompletableSource {
      * @see #mergeDelayError(Iterable)
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable merge(Iterable<? extends CompletableSource> sources) {
         ObjectHelper.requireNonNull(sources, "sources is null");
@@ -753,6 +781,7 @@ public abstract class Completable implements CompletableSource {
      * @throws IllegalArgumentException if maxConcurrency is less than 1
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     @BackpressureSupport(BackpressureKind.FULL)
     private static Completable merge0(Publisher<? extends CompletableSource> sources, int maxConcurrency, boolean delayErrors) {
@@ -776,6 +805,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if sources is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable mergeArrayDelayError(CompletableSource... sources) {
         ObjectHelper.requireNonNull(sources, "sources is null");
@@ -797,6 +827,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if sources is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable mergeDelayError(Iterable<? extends CompletableSource> sources) {
         ObjectHelper.requireNonNull(sources, "sources is null");
@@ -902,6 +933,7 @@ public abstract class Completable implements CompletableSource {
      * @return the new Completable instance
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.CUSTOM)
     public static Completable timer(final long delay, final TimeUnit unit, final Scheduler scheduler) {
         ObjectHelper.requireNonNull(unit, "unit is null");
@@ -968,6 +1000,7 @@ public abstract class Completable implements CompletableSource {
      * @return the new Completable instance
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static <R> Completable using(
             final Callable<R> resourceSupplier,
@@ -995,6 +1028,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if source is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public static Completable wrap(CompletableSource source) {
         ObjectHelper.requireNonNull(source, "source is null");
@@ -1019,6 +1053,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if other is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable ambWith(CompletableSource other) {
         ObjectHelper.requireNonNull(other, "other is null");
@@ -1042,6 +1077,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if next is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final <T> Observable<T> andThen(ObservableSource<T> next) {
         ObjectHelper.requireNonNull(next, "next is null");
@@ -1068,6 +1104,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if next is null
      */
     @CheckReturnValue
+    @NonNull
     @BackpressureSupport(BackpressureKind.FULL)
     @SchedulerSupport(SchedulerSupport.NONE)
     public final <T> Flowable<T> andThen(Publisher<T> next) {
@@ -1092,6 +1129,7 @@ public abstract class Completable implements CompletableSource {
      * @return Single that composes this Completable and next
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final <T> Single<T> andThen(SingleSource<T> next) {
         ObjectHelper.requireNonNull(next, "next is null");
@@ -1115,6 +1153,7 @@ public abstract class Completable implements CompletableSource {
      * @return Maybe that composes this Completable and next
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final <T> Maybe<T> andThen(MaybeSource<T> next) {
         ObjectHelper.requireNonNull(next, "next is null");
@@ -1139,7 +1178,8 @@ public abstract class Completable implements CompletableSource {
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable andThen(CompletableSource next) {
-        return concatWith(next);
+        ObjectHelper.requireNonNull(next, "next is null");
+        return RxJavaPlugins.onAssembly(new CompletableAndThenCompletable(this, next));
     }
 
     /**
@@ -1207,6 +1247,7 @@ public abstract class Completable implements CompletableSource {
      * @throws RuntimeException wrapping an InterruptedException if the current thread is interrupted
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final boolean blockingAwait(long timeout, TimeUnit unit) {
         ObjectHelper.requireNonNull(unit, "unit is null");
@@ -1227,6 +1268,7 @@ public abstract class Completable implements CompletableSource {
      * @return the throwable if this terminated with an error, null otherwise
      * @throws RuntimeException that wraps an InterruptedException if the wait is interrupted
      */
+    @Nullable
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Throwable blockingGet() {
@@ -1250,6 +1292,7 @@ public abstract class Completable implements CompletableSource {
      * @throws RuntimeException that wraps an InterruptedException if the wait is interrupted or
      * TimeoutException if the specified timeout elapsed before it
      */
+    @Nullable
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Throwable blockingGet(long timeout, TimeUnit unit) {
@@ -1318,10 +1361,11 @@ public abstract class Completable implements CompletableSource {
      * @see #andThen(Publisher)
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable concatWith(CompletableSource other) {
         ObjectHelper.requireNonNull(other, "other is null");
-        return concatArray(this, other);
+        return RxJavaPlugins.onAssembly(new CompletableAndThenCompletable(this, other));
     }
 
     /**
@@ -1381,11 +1425,59 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if unit or scheduler is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.CUSTOM)
     public final Completable delay(final long delay, final TimeUnit unit, final Scheduler scheduler, final boolean delayError) {
         ObjectHelper.requireNonNull(unit, "unit is null");
         ObjectHelper.requireNonNull(scheduler, "scheduler is null");
         return RxJavaPlugins.onAssembly(new CompletableDelay(this, delay, unit, scheduler, delayError));
+    }
+
+    /**
+     * Returns a Completable that delays the subscription to the source CompletableSource by a given amount of time.
+     * <p>
+     * <img width="640" height="475" src="https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/Completable.delaySubscription.t.png" alt="">
+     * <dl>
+     *  <dt><b>Scheduler:</b></dt>
+     *  <dd>This version of {@code delaySubscription} operates by default on the {@code computation} {@link Scheduler}.</dd>
+     * </dl>
+     *
+     * @param delay the time to delay the subscription
+     * @param unit  the time unit of {@code delay}
+     * @return a Completable that delays the subscription to the source CompletableSource by the given amount
+     * @since 2.2.3 - experimental
+     * @see <a href="http://reactivex.io/documentation/operators/delay.html">ReactiveX operators documentation: Delay</a>
+     */
+    @CheckReturnValue
+    @Experimental
+    @SchedulerSupport(SchedulerSupport.COMPUTATION)
+    public final Completable delaySubscription(long delay, TimeUnit unit) {
+        return delaySubscription(delay, unit, Schedulers.computation());
+    }
+
+    /**
+     * Returns a Completable that delays the subscription to the source CompletableSource by a given amount of time,
+     * both waiting and subscribing on a given Scheduler.
+     * <p>
+     * <img width="640" height="420" src="https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/Completable.delaySubscription.ts.png" alt="">
+     * <dl>
+     *  <dt><b>Scheduler:</b></dt>
+     *  <dd>You specify which {@link Scheduler} this operator will use.</dd>
+     * </dl>
+     *
+     * @param delay     the time to delay the subscription
+     * @param unit      the time unit of {@code delay}
+     * @param scheduler the Scheduler on which the waiting and subscription will happen
+     * @return a Completable that delays the subscription to the source CompletableSource by a given
+     * amount, waiting and subscribing on the given Scheduler
+     * @since 2.2.3 - experimental
+     * @see <a href="http://reactivex.io/documentation/operators/delay.html">ReactiveX operators documentation: Delay</a>
+     */
+    @CheckReturnValue
+    @Experimental
+    @SchedulerSupport(SchedulerSupport.CUSTOM)
+    public final Completable delaySubscription(long delay, TimeUnit unit, Scheduler scheduler) {
+        return Completable.timer(delay, unit, scheduler).andThen(this);
     }
 
     /**
@@ -1465,6 +1557,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if onEvent is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable doOnEvent(final Consumer<? super Throwable> onEvent) {
         ObjectHelper.requireNonNull(onEvent, "onEvent is null");
@@ -1486,6 +1579,7 @@ public abstract class Completable implements CompletableSource {
      * @return the new Completable instance
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     private Completable doOnLifecycle(
             final Consumer<? super Disposable> onSubscribe,
@@ -1590,6 +1684,7 @@ public abstract class Completable implements CompletableSource {
      * @since 2.1
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable doFinally(Action onFinally) {
         ObjectHelper.requireNonNull(onFinally, "onFinally is null");
@@ -1727,10 +1822,32 @@ public abstract class Completable implements CompletableSource {
      * @see #compose(CompletableTransformer)
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable lift(final CompletableOperator onLift) {
         ObjectHelper.requireNonNull(onLift, "onLift is null");
         return RxJavaPlugins.onAssembly(new CompletableLift(this, onLift));
+    }
+
+    /**
+     * Maps the signal types of this Completable into a {@link Notification} of the same kind
+     * and emits it as a single success value to downstream.
+     * <p>
+     * <img width="640" src="https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/materialize.png" alt="">
+     * <dl>
+     * <dt><b>Scheduler:</b></dt>
+     * <dd>{@code materialize} does not operate by default on a particular {@link Scheduler}.</dd>
+     * </dl>
+     * @param <T> the intended target element type of the notification
+     * @return the new Single instance
+     * @since 2.2.4 - experimental
+     * @see Single#dematerialize(Function)
+     */
+    @Experimental
+    @CheckReturnValue
+    @SchedulerSupport(SchedulerSupport.NONE)
+    public final <T> Single<Notification<T>> materialize() {
+        return RxJavaPlugins.onAssembly(new CompletableMaterialize<T>(this));
     }
 
     /**
@@ -1747,6 +1864,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if other is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable mergeWith(CompletableSource other) {
         ObjectHelper.requireNonNull(other, "other is null");
@@ -1766,6 +1884,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if scheduler is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.CUSTOM)
     public final Completable observeOn(final Scheduler scheduler) {
         ObjectHelper.requireNonNull(scheduler, "scheduler is null");
@@ -1803,6 +1922,7 @@ public abstract class Completable implements CompletableSource {
      * @return the new Completable instance
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable onErrorComplete(final Predicate<? super Throwable> predicate) {
         ObjectHelper.requireNonNull(predicate, "predicate is null");
@@ -1825,6 +1945,7 @@ public abstract class Completable implements CompletableSource {
      * @return the new Completable instance
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable onErrorResumeNext(final Function<? super Throwable, ? extends CompletableSource> errorMapper) {
         ObjectHelper.requireNonNull(errorMapper, "errorMapper is null");
@@ -1969,7 +2090,7 @@ public abstract class Completable implements CompletableSource {
      *  <dt><b>Scheduler:</b></dt>
      *  <dd>{@code retry} does not operate by default on a particular {@link Scheduler}.</dd>
      * </dl>
-     * @param times the number of times the returned Completable should retry this Completable
+     * @param times the number of times to resubscribe if the current Completable fails
      * @return the new Completable instance
      * @throws IllegalArgumentException if times is negative
      */
@@ -1989,7 +2110,7 @@ public abstract class Completable implements CompletableSource {
      *  <dd>{@code retry} does not operate by default on a particular {@link Scheduler}.</dd>
      * </dl>
      * <p>History: 2.1.8 - experimental
-     * @param times the number of times the returned Completable should retry this Completable
+     * @param times the number of times to resubscribe if the current Completable fails
      * @param predicate the predicate that is called with the latest throwable and should return
      * true to indicate the returned Completable should resubscribe to this Completable.
      * @return the new Completable instance
@@ -2083,6 +2204,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if other is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable startWith(CompletableSource other) {
         ObjectHelper.requireNonNull(other, "other is null");
@@ -2104,6 +2226,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if other is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final <T> Observable<T> startWith(Observable<T> other) {
         ObjectHelper.requireNonNull(other, "other is null");
@@ -2127,6 +2250,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if other is null
      */
     @CheckReturnValue
+    @NonNull
     @BackpressureSupport(BackpressureKind.FULL)
     @SchedulerSupport(SchedulerSupport.NONE)
     public final <T> Flowable<T> startWith(Publisher<T> other) {
@@ -2175,7 +2299,7 @@ public abstract class Completable implements CompletableSource {
     @SchedulerSupport(SchedulerSupport.NONE)
     @Override
     public final void subscribe(CompletableObserver observer) {
-        ObjectHelper.requireNonNull(observer, "s is null");
+        ObjectHelper.requireNonNull(observer, "observer is null");
         try {
 
             observer = RxJavaPlugins.onSubscribe(this, observer);
@@ -2249,6 +2373,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if either callback is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Disposable subscribe(final Action onComplete, final Consumer<? super Throwable> onError) {
         ObjectHelper.requireNonNull(onError, "onError is null");
@@ -2276,6 +2401,7 @@ public abstract class Completable implements CompletableSource {
      * @return the Disposable that allows disposing the subscription
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Disposable subscribe(final Action onComplete) {
         ObjectHelper.requireNonNull(onComplete, "onComplete is null");
@@ -2299,6 +2425,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if scheduler is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.CUSTOM)
     public final Completable subscribeOn(final Scheduler scheduler) {
         ObjectHelper.requireNonNull(scheduler, "scheduler is null");
@@ -2325,6 +2452,7 @@ public abstract class Completable implements CompletableSource {
      * @since 2.2
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final Completable takeUntil(CompletableSource other) {
         ObjectHelper.requireNonNull(other, "other is null");
@@ -2369,6 +2497,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if unit or other is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.COMPUTATION)
     public final Completable timeout(long timeout, TimeUnit unit, CompletableSource other) {
         ObjectHelper.requireNonNull(other, "other is null");
@@ -2416,6 +2545,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if unit, scheduler or other is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.CUSTOM)
     public final Completable timeout(long timeout, TimeUnit unit, Scheduler scheduler, CompletableSource other) {
         ObjectHelper.requireNonNull(other, "other is null");
@@ -2439,6 +2569,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if unit or scheduler
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.CUSTOM)
     private Completable timeout0(long timeout, TimeUnit unit, Scheduler scheduler, CompletableSource other) {
         ObjectHelper.requireNonNull(unit, "unit is null");
@@ -2555,6 +2686,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if completionValueSupplier is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final <T> Single<T> toSingle(final Callable<? extends T> completionValueSupplier) {
         ObjectHelper.requireNonNull(completionValueSupplier, "completionValueSupplier is null");
@@ -2576,6 +2708,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if completionValue is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.NONE)
     public final <T> Single<T> toSingleDefault(final T completionValue) {
         ObjectHelper.requireNonNull(completionValue, "completionValue is null");
@@ -2596,6 +2729,7 @@ public abstract class Completable implements CompletableSource {
      * @throws NullPointerException if scheduler is null
      */
     @CheckReturnValue
+    @NonNull
     @SchedulerSupport(SchedulerSupport.CUSTOM)
     public final Completable unsubscribeOn(final Scheduler scheduler) {
         ObjectHelper.requireNonNull(scheduler, "scheduler is null");

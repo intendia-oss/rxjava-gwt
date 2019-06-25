@@ -454,6 +454,8 @@ public final class ObservableReplay<T> extends ConnectableObservable<T> implemen
                 cancelled = true;
                 // remove this from the parent
                 parent.remove(this);
+                // make sure the last known node is not retained
+                index = null;
             }
         }
         /**
@@ -687,6 +689,7 @@ public final class ObservableReplay<T> extends ConnectableObservable<T> implemen
 
                 for (;;) {
                     if (output.isDisposed()) {
+                        output.index = null;
                         return;
                     }
 
