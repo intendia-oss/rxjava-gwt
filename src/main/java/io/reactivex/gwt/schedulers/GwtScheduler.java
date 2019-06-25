@@ -34,9 +34,18 @@ public class GwtScheduler extends io.reactivex.Scheduler {
             ScheduledAction scheduledAction = new ScheduledAction(action);
 
             if (incremental && (delayTime <= 0 || unit == null)) {
-                Promise.resolve(0).then(o -> { scheduledAction.run(); return null; });
+                Promise.resolve(0).then(o -> {
+                    if (!isDisposed()) {
+                        scheduledAction.run();
+                    }
+                    return null;
+                });
             } else {
-                DomGlobal.setTimeout(args -> scheduledAction.run(), (int) unit.toMillis(delayTime));
+                DomGlobal.setTimeout(args -> {
+                    if (!isDisposed()) {
+                        scheduledAction.run();
+                    }
+                }, (int) unit.toMillis(delayTime));
             }
 
             return scheduledAction;
