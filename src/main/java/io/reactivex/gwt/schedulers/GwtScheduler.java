@@ -1,6 +1,7 @@
 package io.reactivex.gwt.schedulers;
 
 import elemental2.dom.DomGlobal;
+import elemental2.promise.IThenable;
 import elemental2.promise.Promise;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.exceptions.OnErrorNotImplementedException;
@@ -31,19 +32,23 @@ public class GwtScheduler extends io.reactivex.Scheduler {
         public Disposable schedule(Runnable action, long delayTime, TimeUnit unit) {
             action = RxJavaPlugins.onSchedule(action);
 
-            ScheduledAction scheduledAction = new ScheduledAction(action);
+            final ScheduledAction scheduledAction = new ScheduledAction(action);
 
             if (incremental && (delayTime <= 0 || unit == null)) {
-                Promise.resolve(0).then(o -> {
-                    if (!isDisposed()) {
-                        scheduledAction.run();
+                Promise.resolve(0).then(new IThenable.ThenOnFulfilledCallbackFn<Integer, Object>() {
+                    @Override public IThenable<Object> onInvoke(Integer o) {
+                        if (!GwtWorker.this.isDisposed()) {
+                            scheduledAction.run();
+                        }
+                        return null;
                     }
-                    return null;
                 });
             } else {
-                DomGlobal.setTimeout(args -> {
-                    if (!isDisposed()) {
-                        scheduledAction.run();
+                DomGlobal.setTimeout(new DomGlobal.SetTimeoutCallbackFn() {
+                    @Override public void onInvoke(Object... args) {
+                        if (!GwtWorker.this.isDisposed()) {
+                            scheduledAction.run();
+                        }
                     }
                 }, (int) unit.toMillis(delayTime));
             }
