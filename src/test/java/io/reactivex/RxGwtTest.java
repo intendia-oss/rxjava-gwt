@@ -17,7 +17,7 @@ import io.reactivex.subjects.BehaviorSubject;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class RxGwtTest extends GWTTestCase {
-
+    private static final int TEST_THRESHOLD = 1000;
     private Consumer<Throwable> onError = new Consumer<Throwable>() {
         @Override public void accept(Throwable throwable) {
             reportUncaughtException(throwable);
@@ -30,7 +30,7 @@ public class RxGwtTest extends GWTTestCase {
     }
 
     public void test_compatible_operators() {
-        delayTestFinish(1000);
+        delayTestFinish(TEST_THRESHOLD);
         Scheduler computation = Schedulers.computation();
         GWT.log("computation scheduler: " + computation);
         Observable.range(1, 10)
@@ -46,7 +46,7 @@ public class RxGwtTest extends GWTTestCase {
     }
 
     public void test_that_range_filter_reduce_works() {
-        delayTestFinish(1000);
+        delayTestFinish(TEST_THRESHOLD);
         Observable.range(1, 10)
                 .observeOn(Schedulers.io())
                 .doOnError(onError)
@@ -62,21 +62,21 @@ public class RxGwtTest extends GWTTestCase {
     }
 
     public void test_that_interval_works() {
-        delayTestFinish(1000);
-        Observable.interval(10, MILLISECONDS)
+        delayTestFinish(TEST_THRESHOLD);
+        Observable.interval(2, MILLISECONDS)
                 .doOnError(onError)
-                .take(10)
+                .take(2)
                 .map(new Function<Long, Long>() {
                     public Long apply(Long aLong) { return aLong + 1; }
                 })
                 .lastOrError()
                 .subscribe(new Consumer<Number>() {
-                    public void accept(Number x) { assertEquals(10, x.intValue()); finishTest(); }
+                    public void accept(Number x) { assertEquals(2, x.intValue()); finishTest(); }
                 });
     }
 
     public void test_that_async_compiles() {
-        delayTestFinish(1000);
+        delayTestFinish(TEST_THRESHOLD);
         final AsyncSubject<String> subject = AsyncSubject.create();
         Observable.just("unexpected", "expected").subscribe(new Consumer<String>() {
             public void accept(String n) { subject.onNext(n); }
@@ -88,7 +88,7 @@ public class RxGwtTest extends GWTTestCase {
     }
 
     public void test_that_behaviour_compiles() {
-        delayTestFinish(1000);
+        delayTestFinish(TEST_THRESHOLD);
         final BehaviorSubject<String> subject = BehaviorSubject.create();
         Observable.just("expected").subscribe(new Consumer<String>() {
             public void accept(String n) { subject.onNext(n); }
@@ -136,7 +136,7 @@ public class RxGwtTest extends GWTTestCase {
     }
 
     public void test_that_single_works() {
-        delayTestFinish(1000);
+        delayTestFinish(TEST_THRESHOLD);
         Single.just("o")
                 .zipWith(Single.create(new SingleOnSubscribe<String>() {
                     @Override public void subscribe(SingleEmitter<String> e) throws Exception {
