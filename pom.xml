@@ -112,9 +112,6 @@
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
-            <resource>
-                <directory>src/main/super</directory>
-            </resource>
         </resources>
         <pluginManagement>
             <plugins>
