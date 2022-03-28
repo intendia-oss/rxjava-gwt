@@ -48,14 +48,14 @@
     </distributionManagement>
 
     <properties>
-        <maven.compiler.source>1.6</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <gwt.version>2.8.2-rx1</gwt.version>
-        <rxjava.version>2.2.10</rxjava.version>
+        <gwt.version>2.9.0</gwt.version>
+        <rxjava.version>2.2.21</rxjava.version>
     </properties>
 
     <dependencies>
@@ -74,13 +74,13 @@
         <dependency>
             <groupId>org.reactivestreams</groupId>
             <artifactId>reactive-streams</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
             <classifier>sources</classifier>
         </dependency>
         <dependency>
             <groupId>com.google.elemental2</groupId>
             <artifactId>elemental2-dom</artifactId>
-            <version>1.0.0-RC1</version>
+            <version>1.1.0</version>
         </dependency>
         <!-- test dependencies -->
         <dependency>
@@ -98,7 +98,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -118,7 +118,7 @@
                 <plugin>
                     <groupId>net.ltgt.gwt.maven</groupId>
                     <artifactId>gwt-maven-plugin</artifactId>
-                    <version>1.0-rc-10</version>
+                    <version>1.0.0</version>
                     <extensions>true</extensions>
                     <configuration>
                         <skipModule>true</skipModule>
