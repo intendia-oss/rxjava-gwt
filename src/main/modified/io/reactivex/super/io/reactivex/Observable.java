@@ -7283,7 +7283,6 @@ public abstract class Observable<T> implements ObservableSource<T> {
      * @return a Single that emits a single item: the number of items emitted by the source ObservableSource as a
      *         64-bit Long item
      * @see <a href="http://reactivex.io/documentation/operators/count.html">ReactiveX operators documentation: Count</a>
-     * @see #count()
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
@@ -9902,6 +9901,11 @@ public abstract class Observable<T> implements ObservableSource<T> {
      * asynchronous. If strict event ordering is required, consider using the {@link #observeOn(Scheduler, boolean)} overload.
      * <p>
      * <img width="640" height="308" src="https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/observeOn.png" alt="">
+     * <p>
+     * This operator keeps emitting as many signals as it can on the given Scheduler's Worker thread,
+     * which may result in a longer than expected occupation of this thread. In other terms,
+     * it does not allow per-signal fairness in case the worker runs on a shared underlying thread.
+     * If such fairness and signal/work interleaving is preferred, use the delay operator with zero time instead.
      * <dl>
      *  <dt><b>Scheduler:</b></dt>
      *  <dd>You specify which {@link Scheduler} this operator will use.</dd>
@@ -9918,6 +9922,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      * @see #subscribeOn
      * @see #observeOn(Scheduler, boolean)
      * @see #observeOn(Scheduler, boolean, int)
+     * @see #delay(long, TimeUnit, Scheduler)
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.CUSTOM)
@@ -9930,6 +9935,11 @@ public abstract class Observable<T> implements ObservableSource<T> {
      * asynchronously with an unbounded buffer with {@link Flowable#bufferSize()} "island size" and optionally delays onError notifications.
      * <p>
      * <img width="640" height="308" src="https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/observeOn.png" alt="">
+     * <p>
+     * This operator keeps emitting as many signals as it can on the given Scheduler's Worker thread,
+     * which may result in a longer than expected occupation of this thread. In other terms,
+     * it does not allow per-signal fairness in case the worker runs on a shared underlying thread.
+     * If such fairness and signal/work interleaving is preferred, use the delay operator with zero time instead.
      * <dl>
      *  <dt><b>Scheduler:</b></dt>
      *  <dd>You specify which {@link Scheduler} this operator will use.</dd>
@@ -9950,6 +9960,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      * @see #subscribeOn
      * @see #observeOn(Scheduler)
      * @see #observeOn(Scheduler, boolean, int)
+     * @see #delay(long, TimeUnit, Scheduler, boolean)
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.CUSTOM)
@@ -9962,6 +9973,11 @@ public abstract class Observable<T> implements ObservableSource<T> {
      * asynchronously with an unbounded buffer of configurable "island size" and optionally delays onError notifications.
      * <p>
      * <img width="640" height="308" src="https://raw.github.com/wiki/ReactiveX/RxJava/images/rx-operators/observeOn.png" alt="">
+     * <p>
+     * This operator keeps emitting as many signals as it can on the given Scheduler's Worker thread,
+     * which may result in a longer than expected occupation of this thread. In other terms,
+     * it does not allow per-signal fairness in case the worker runs on a shared underlying thread.
+     * If such fairness and signal/work interleaving is preferred, use the delay operator with zero time instead.
      * <dl>
      *  <dt><b>Scheduler:</b></dt>
      *  <dd>You specify which {@link Scheduler} this operator will use.</dd>
@@ -9983,6 +9999,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      * @see #subscribeOn
      * @see #observeOn(Scheduler)
      * @see #observeOn(Scheduler, boolean)
+     * @see #delay(long, TimeUnit, Scheduler, boolean)
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.CUSTOM)
@@ -12388,6 +12405,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      *            ObservableSource
      * @return an Observable that emits the items emitted by the ObservableSource returned from applying {@code func} to the most recently emitted item emitted by the source ObservableSource
      * @see <a href="http://reactivex.io/documentation/operators/flatmap.html">ReactiveX operators documentation: FlatMap</a>
+     * @see #switchMapDelayError(Function)
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
@@ -12417,6 +12435,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      *            the number of elements to prefetch from the current active inner ObservableSource
      * @return an Observable that emits the items emitted by the ObservableSource returned from applying {@code func} to the most recently emitted item emitted by the source ObservableSource
      * @see <a href="http://reactivex.io/documentation/operators/flatmap.html">ReactiveX operators documentation: FlatMap</a>
+     * @see #switchMapDelayError(Function, int)
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
@@ -12507,7 +12526,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      *               {@link CompletableSource} to be subscribed to and awaited for
      *               (non blockingly) for its terminal event
      * @return the new Completable instance
-     * @see #switchMapCompletableDelayError(Function)
+     * @see #switchMapCompletable(Function)
      * @since 2.2
      */
     @CheckReturnValue
@@ -12543,7 +12562,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      *               return a {@code MaybeSource} to replace the current active inner source
      *               and get subscribed to.
      * @return the new Observable instance
-     * @see #switchMapMaybe(Function)
+     * @see #switchMapMaybeDelayError(Function)
      * @since 2.2
      */
     @CheckReturnValue
@@ -12599,6 +12618,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      *            SingleSource
      * @return an Observable that emits the item emitted by the SingleSource returned from applying {@code func} to the most recently emitted item emitted by the source ObservableSource
      * @see <a href="http://reactivex.io/documentation/operators/flatmap.html">ReactiveX operators documentation: FlatMap</a>
+     * @see #switchMapSingleDelayError(Function)
      * @since 2.2
      */
     @CheckReturnValue
@@ -12630,6 +12650,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      *            SingleSource
      * @return an Observable that emits the item emitted by the SingleSource returned from applying {@code func} to the most recently emitted item emitted by the source ObservableSource
      * @see <a href="http://reactivex.io/documentation/operators/flatmap.html">ReactiveX operators documentation: FlatMap</a>
+     * @see #switchMapSingle(Function)
      * @since 2.2
      */
     @CheckReturnValue
@@ -12661,6 +12682,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      *            ObservableSource
      * @return an Observable that emits the items emitted by the ObservableSource returned from applying {@code func} to the most recently emitted item emitted by the source ObservableSource
      * @see <a href="http://reactivex.io/documentation/operators/flatmap.html">ReactiveX operators documentation: FlatMap</a>
+     * @see #switchMap(Function)
      * @since 2.0
      */
     @CheckReturnValue
@@ -12692,6 +12714,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      *            the number of elements to prefetch from the current active inner ObservableSource
      * @return an Observable that emits the items emitted by the ObservableSource returned from applying {@code func} to the most recently emitted item emitted by the source ObservableSource
      * @see <a href="http://reactivex.io/documentation/operators/flatmap.html">ReactiveX operators documentation: FlatMap</a>
+     * @see #switchMap(Function, int)
      * @since 2.0
      */
     @CheckReturnValue

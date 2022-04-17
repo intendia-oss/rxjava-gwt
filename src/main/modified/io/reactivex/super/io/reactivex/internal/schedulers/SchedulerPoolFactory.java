@@ -21,6 +21,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.reactivex.functions.Function;
+
 /**
  * Manages the creating of ScheduledExecutorServices and sets up purging.
  */
@@ -98,28 +100,40 @@ public final class SchedulerPoolFactory {
         start();
     }
 
-    static final class PurgeProperties {
-
-        boolean purgeEnable;
-
-        int purgePeriod;
-
-        void load(Properties properties) {
-            if (properties.containsKey(PURGE_ENABLED_KEY)) {
-                purgeEnable = Boolean.parseBoolean(properties.getProperty(PURGE_ENABLED_KEY));
-            } else {
-                purgeEnable = true;
-            }
-
-            if (purgeEnable && properties.containsKey(PURGE_PERIOD_SECONDS_KEY)) {
-                try {
-                    purgePeriod = Integer.parseInt(properties.getProperty(PURGE_PERIOD_SECONDS_KEY));
-                } catch (NumberFormatException ex) {
-                    purgePeriod = 1;
+    static int getIntProperty(boolean enabled, String key, int defaultNotFound, int defaultNotEnabled, Function<String, String> propertyAccessor) {
+        if (enabled) {
+            try {
+                String value = propertyAccessor.apply(key);
+                if (value == null) {
+                    return defaultNotFound;
                 }
-            } else {
-                purgePeriod = 1;
+                return Integer.parseInt(value);
+            } catch (Throwable ex) {
+                return defaultNotFound;
             }
+        }
+        return defaultNotEnabled;
+    }
+
+    static boolean getBooleanProperty(boolean enabled, String key, boolean defaultNotFound, boolean defaultNotEnabled, Function<String, String> propertyAccessor) {
+        if (enabled) {
+            try {
+                String value = propertyAccessor.apply(key);
+                if (value == null) {
+                    return defaultNotFound;
+                }
+                return "true".equals(value);
+            } catch (Throwable ex) {
+                return defaultNotFound;
+            }
+        }
+        return defaultNotEnabled;
+    }
+
+    static final class SystemPropertyAccessor implements Function<String, String> {
+        @Override
+        public String apply(String t) throws Exception {
+            return System.getProperty(t);
         }
     }
 
